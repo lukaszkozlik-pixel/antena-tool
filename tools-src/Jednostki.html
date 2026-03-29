@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Przelicznik dBµV / dBm</title>
     <style>
-        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        body { font-family: sans-serif; margin: 0; background: #fff; color: #000; }
 header {
     background: #455a64;
     color: white;
@@ -41,13 +41,13 @@ h1 {
 }
         .container { padding: 20px; max-width: 400px; margin: auto; }
         
-        .card { background: var(--tile-bg); padding: 25px; border-radius: 12px; box-shadow: var(--tile-shadow); text-align: center; color: var(--text); }
+        .card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); text-align: center; color: #000; }
         .input-group { margin-bottom: 25px; }
         label { display: block; margin-bottom: 10px; font-weight: bold; color: #555; }
         
         input { 
-            width: 100%; padding: 15px; border: 2px solid var(--tile-border); border-radius: 8px;
-            font-size: 1.5rem; text-align: center; box-sizing: border-box; transition: 0.3s; background: var(--tile-bg); color: var(--text);
+            width: 100%; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 1.5rem; text-align: center; box-sizing: border-box; transition: 0.3s; background: #fff; color: #000;
         }
         input:focus { border-color: #455a64; outline: none; background: #f0f4f5; }
 
@@ -60,26 +60,7 @@ h1 {
     </style>
 </head>
 <script>
-// Motyw: kopiuj ustawienie z localStorage lub systemu
-function applyTheme() {
-    let theme = localStorage.getItem('theme');
-    if (!theme) {
-        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    document.documentElement.setAttribute('data-theme', theme);
-}
-applyTheme();
 </script>
-<script>
-// Motyw: kopiuj ustawienie z localStorage lub systemu
-function applyTheme() {
-    let theme = localStorage.getItem('theme');
-    if (!theme) {
-        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    document.documentElement.setAttribute('data-theme', theme);
-}
-applyTheme();
 </script>
 <body>
 

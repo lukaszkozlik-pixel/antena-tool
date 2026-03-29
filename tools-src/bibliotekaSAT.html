@@ -6,43 +6,19 @@
     <title>Biblioteka SAT</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        body { margin: 0; background: #fff; color: #000; }
         header { background: #004ba0; color: white; padding: 15px; display: flex; align-items: center; }
         .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
         .container { padding: 10px; }
-        
-        .accordion { background: var(--tile-bg); border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: var(--tile-shadow); }
+        .accordion { background: #f5f5f5; border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .acc-header { background: #004ba0; color: white; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .acc-content { 
-            display: none; 
-            padding: 0;             /* Usuwamy marginesy, by iframe wypełnił całą szerokość */
-            border-top: 1px solid #eee; 
-            background: #ffffff;    /* Zmieniamy tło z ciemnego na białe */
-            color: #333;            /* Zmieniamy kolor tekstu na ciemny */
-            height: 60vh;           /* Wysokość okna dla tabeli (70% ekranu) */
-        }
+        .acc-content { display: none; padding: 0; border-top: 1px solid #eee; background: #fff; color: #333; height: 60vh; }
         .acc-content.show { display: block; }
-        /* Styl dla samego iframe, aby wypełnił blok akordeonu */
-        .acc-content iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-       
+        .acc-content iframe { width: 100%; height: 100%; border: none; display: block; }
     </style>
 </head>
 <script>
-// Motyw: kopiuj ustawienie z localStorage lub systemu
-function applyTheme() {
-    let theme = localStorage.getItem('theme');
-    if (!theme) {
-        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    document.documentElement.setAttribute('data-theme', theme);
-}
-applyTheme();
+
 </script>
 <body>
 
@@ -82,7 +58,7 @@ applyTheme();
 </div>
 
 <script>
-    // Podmień istniejącą funkcję toggleAcc na tę poniżej:
+    
 function toggleAcc(header) {
     const content = header.nextElementSibling;
     // Zmieniamy tylko w sekcjach z rozwijanym kontentem

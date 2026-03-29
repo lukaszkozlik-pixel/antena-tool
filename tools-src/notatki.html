@@ -1,62 +1,54 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<link rel="stylesheet" href="../style.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notatki Instalatora</title>
+    <link rel="stylesheet" href="../style.css">
     <style>
-        /* --- STYLIZACJA (JASNY MOTYW) --- */
         body {
-            background: var(--bg);
+            background: #fff;
             margin: 0;
             font-family: -apple-system, sans-serif;
-            color: var(--text);
+            color: #000;
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
-
-    /* Styl nagłówka apki */
-    header {
-    background: #1a73e8;
-    color: white;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    position: relative; /* Pozwala na centrowanie h1 względem całego paska */
-    min-height: 50px;
-    box-sizing: border-box;
-}
-
-.btn-back {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    z-index: 2; /* Musi być nad tekstem, by dało się go kliknąć */
-    padding: 0;
-    margin: 0;
-}
-
-h1 {
-    font-size: 1.1rem;
-    margin: 0;
-    position: absolute; /* Wyrywamy tytuł z układu flex */
-    left: 0;
-    right: 0;
-    text-align: center; /* Centrujemy tekst na całej szerokości header */
-    pointer-events: none; /* Sprawia, że h1 nie blokuje kliknięć w przycisk pod nim */
-}
-
-        /* Wyszukiwarka */
+        header {
+            background: #1a73e8;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            min-height: 50px;
+            box-sizing: border-box;
+        }
+        .btn-back {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 2;
+            padding: 0;
+            margin: 0;
+        }
+        h1 {
+            font-size: 1.1rem;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
+            pointer-events: none;
+        }
         .search-bar {
             padding: 10px 15px;
-            background: var(--tile-bg);
-            border-bottom: 1px solid var(--tile-border);
+            background: #f5f5f5;
+            border-bottom: 1px solid #e0e0e0;
         }
-
         #searchNote {
             width: 100%;
             padding: 10px;
@@ -66,25 +58,20 @@ h1 {
             box-sizing: border-box;
             outline: none;
         }
-
-        /* Lista notatek */
         .notes-list {
             flex: 1;
             padding: 15px;
             overflow-y: auto;
         }
-
         .note-card {
-            background: var(--tile-bg);
+            background: #fff;
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 12px;
-            box-shadow: var(--tile-shadow);
-            border: 1px solid var(--tile-border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            border: 1px solid #e0e0e0;
             position: relative;
         }
-
-        /* Styl edytowalnego tekstu */
         .note-text {
             font-size: 1rem;
             line-height: 1.5;
@@ -94,19 +81,16 @@ h1 {
             border-radius: 4px;
             transition: background 0.2s;
         }
-
         .note-text:focus {
             background: #f0f7ff;
             border: 1px dashed #1a73e8;
         }
-
         .note-date {
             font-size: 0.7rem;
             color: #999;
             margin-top: 10px;
             display: block;
         }
-
         .btn-delete {
             position: absolute;
             top: 10px;
@@ -120,18 +104,15 @@ h1 {
             font-weight: bold;
             cursor: pointer;
         }
-
-        /* Sekcja wprowadzania */
         .add-note-area {
-            background: var(--tile-bg);
+            background: #f5f5f5;
             padding: 15px;
-            border-top: 1px solid var(--tile-border);
+            border-top: 1px solid #e0e0e0;
         }
-
         #noteInput {
             width: 100%;
             height: 60px;
-            border: 1px solid var(--tile-border);
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
             padding: 10px;
             font-size: 1rem;
@@ -140,7 +121,6 @@ h1 {
             transition: all 0.3s cubic-bezier(.4,2,.6,1);
             z-index: 1001;
         }
-
         #noteInput.expanded {
             position: fixed;
             top: 0;
@@ -154,8 +134,6 @@ h1 {
             z-index: 1002;
             box-shadow: none;
         }
-        
-
         .btn-save {
             background: #1a73e8;
             color: white;
@@ -180,38 +158,6 @@ h1 {
             z-index: 2002;
             box-shadow: 0 -2px 16px rgba(0,0,0,0.10);
         }
-    </style>
-</head>
-
-<body>
-<div id="editNoteModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:3000;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
-    <div style="background:var(--tile-bg,#fff);padding:20px 15px 15px 15px;border-radius:12px;max-width:95vw;width:400px;box-shadow:0 4px 32px rgba(0,0,0,0.18);position:relative;">
-        <button id="editNoteClose" style="position:absolute;top:10px;right:10px;background:#fff;color:#1a73e8;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2rem;cursor:pointer;">×</button>
-        <textarea id="editNoteText" style="width:100%;min-height:70px;border-radius:8px;padding:10px;margin-bottom:10px;"></textarea>
-        <input type="file" id="editNoteImageInput" accept="image/*" multiple style="margin-bottom:10px;width:100%;">
-        <div id="editNoteImagePreview" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;"></div>
-        <button id="editNoteSave" style="width:100%;background:#1a73e8;color:#fff;border:none;padding:10px 0;border-radius:8px;font-weight:bold;">ZAPISZ</button>
-    </div>
-</div>
-
-<header>
-    <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
-    <h1>Notatki</h1>
-</header>
-
-<div class="search-bar">
-    <input type="text" id="searchNote" placeholder="Szukaj w notatkach..." oninput="displayNotes()">
-</div>
-
-<div class="notes-list" id="notesList"></div>
-
-<div class="add-note-area">
-    <div id="noteInputOverlay" class="noteInput-overlay"></div>
-    <button id="noteInputClose" class="noteInput-close" title="Zamknij" tabindex="-1">×</button>
-    <textarea id="noteInput" placeholder="Nowa notatka..."></textarea>
-    <input type="file" id="noteImageInput" accept="image/*" multiple style="margin-top:10px; width:100%;">
-    <div id="noteImagePreview" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0 0;"></div>
-    <style>
         .note-image-thumb {
             position: relative;
             display: inline-block;
@@ -237,9 +183,6 @@ h1 {
             cursor: pointer;
             z-index: 2;
         }
-    </style>
-    <button id="btnSave" class="btn-save" onclick="addNote()">DODAJ</button>
-    <style>
         .noteInput-overlay {
             position: fixed;
             top: 0;
@@ -272,236 +215,245 @@ h1 {
         .noteInput-close.active {
             display: block;
         }
-        </style>
+    </style>
+</head>
+
+<body>
+<div id="editNoteModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:3000;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+    <div style="background:var(--tile-bg,#fff);padding:20px 15px 15px 15px;border-radius:12px;max-width:95vw;width:400px;box-shadow:0 4px 32px rgba(0,0,0,0.18);position:relative;">
+        <button id="editNoteClose" style="position:absolute;top:10px;right:10px;background:#fff;color:#1a73e8;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2rem;cursor:pointer;">×</button>
+        <textarea id="editNoteText" style="width:100%;min-height:70px;border-radius:8px;padding:10px;margin-bottom:10px;"></textarea>
+        <input type="file" id="editNoteImageInput" accept="image/*" multiple style="margin-bottom:10px;width:100%;">
+        <div id="editNoteImagePreview" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        <button id="editNoteSave" style="width:100%;background:#1a73e8;color:#fff;border:none;padding:10px 0;border-radius:8px;font-weight:bold;">ZAPISZ</button>
+    </div>
+</div>
+
+<header>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
+    <h1>Notatki</h1>
+</header>
+
+<div class="search-bar">
+    <input type="text" id="searchNote" placeholder="Szukaj w notatkach..." oninput="displayNotes()">
+</div>
+
+<div class="notes-list" id="notesList"></div>
+
+<div class="add-note-area">
+    <div id="noteInputOverlay" class="noteInput-overlay"></div>
+    <button id="noteInputClose" class="noteInput-close" title="Zamknij" tabindex="-1">×</button>
+    <textarea id="noteInput" placeholder="Nowa notatka..."></textarea>
+    <input type="file" id="noteImageInput" accept="image/*" multiple style="margin-top:10px; width:100%;">
+    <div id="noteImagePreview" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0 0;"></div>
+    <button id="btnSave" class="btn-save" onclick="addNote()">DODAJ</button>
 </div>
 
 <script>
-        // Umożliwienie wywołania openEditNote z HTML (onclick)
-        window.openEditNote = openEditNote;
-    // Efekt powiększenia textarea na cały ekran po kliknięciu z możliwością zamknięcia
-    const noteInput = document.getElementById('noteInput');
-    const noteInputOverlay = document.getElementById('noteInputOverlay');
-    const noteInputClose = document.getElementById('noteInputClose');
-    const btnSave = document.getElementById('btnSave');
-    const noteImageInput = document.getElementById('noteImageInput');
-
-    function expandNoteInput() {
-        noteInput.classList.add('expanded');
-        noteInputOverlay.classList.add('active');
-        noteInputClose.classList.add('active');
-        btnSave.classList.add('fixed');
-        setTimeout(() => noteInput.select && noteInput.select(), 10);
-    }
-    function collapseNoteInput() {
-        noteInput.classList.remove('expanded');
-        noteInputOverlay.classList.remove('active');
-        noteInputClose.classList.remove('active');
-        btnSave.classList.remove('fixed');
-        noteInput.blur();
-    }
-    noteInput.addEventListener('focus', expandNoteInput);
-    noteInputClose.addEventListener('click', collapseNoteInput);
-    noteInputOverlay.addEventListener('click', collapseNoteInput);
-
-    // Dodawanie i podgląd wielu zdjęć do notatki
-    let noteImageData = [];
-    const noteImagePreview = document.getElementById('noteImagePreview');
-    function renderImagePreview() {
-        noteImagePreview.innerHTML = '';
-        noteImageData.forEach((imgData, idx) => {
-            const thumb = document.createElement('div');
-            thumb.className = 'note-image-thumb';
-            const img = document.createElement('img');
-            img.src = imgData;
-            const btn = document.createElement('button');
-            btn.className = 'note-image-remove';
-            btn.innerHTML = '&times;';
-            btn.title = 'Usuń zdjęcie';
-            btn.onclick = function() {
-                noteImageData.splice(idx, 1);
-                renderImagePreview();
-            };
-            thumb.appendChild(img);
-            thumb.appendChild(btn);
-            noteImagePreview.appendChild(thumb);
-        });
-    }
-    noteImageInput.addEventListener('change', function(e) {
-        noteImageData = [];
-        const files = Array.from(e.target.files);
-        let loaded = 0;
-        if (!files.length) renderImagePreview();
-        files.forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                noteImageData.push(evt.target.result);
-                loaded++;
-                if (loaded === files.length) renderImagePreview();
-            };
-            reader.readAsDataURL(file);
-        });
+// --- LOGIKA NOTATEK ---
+window.openEditNote = openEditNote;
+const noteInput = document.getElementById('noteInput');
+const noteInputOverlay = document.getElementById('noteInputOverlay');
+const noteInputClose = document.getElementById('noteInputClose');
+const btnSave = document.getElementById('btnSave');
+const noteImageInput = document.getElementById('noteImageInput');
+function expandNoteInput() {
+    noteInput.classList.add('expanded');
+    noteInputOverlay.classList.add('active');
+    noteInputClose.classList.add('active');
+    btnSave.classList.add('fixed');
+    setTimeout(() => noteInput.select && noteInput.select(), 10);
+}
+function collapseNoteInput() {
+    noteInput.classList.remove('expanded');
+    noteInputOverlay.classList.remove('active');
+    noteInputClose.classList.remove('active');
+    btnSave.classList.remove('fixed');
+    noteInput.blur();
+}
+noteInput.addEventListener('focus', expandNoteInput);
+noteInputClose.addEventListener('click', collapseNoteInput);
+noteInputOverlay.addEventListener('click', collapseNoteInput);
+let noteImageData = [];
+const noteImagePreview = document.getElementById('noteImagePreview');
+function renderImagePreview() {
+    noteImagePreview.innerHTML = '';
+    noteImageData.forEach((imgData, idx) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'note-image-thumb';
+        const img = document.createElement('img');
+        img.src = imgData;
+        const btn = document.createElement('button');
+        btn.className = 'note-image-remove';
+        btn.innerHTML = '&times;';
+        btn.title = 'Usuń zdjęcie';
+        btn.onclick = function() {
+            noteImageData.splice(idx, 1);
+            renderImagePreview();
+        };
+        thumb.appendChild(img);
+        thumb.appendChild(btn);
+        noteImagePreview.appendChild(thumb);
     });
-    document.addEventListener('DOMContentLoaded', loadNotes);
-
-    function getNotes() {
-        return JSON.parse(localStorage.getItem('inst-notes') || '[]');
-    }
-
-    function addNote() {
-        const input = document.getElementById('noteInput');
-        if (!input.value.trim()) return;
-
-        const notes = getNotes();
-        notes.unshift({
-            id: Date.now(),
-            text: input.value,
-            date: new Date().toLocaleString('pl-PL'),
-            images: noteImageData.length ? [...noteImageData] : []
-        });
-
-        localStorage.setItem('inst-notes', JSON.stringify(notes));
-        input.value = "";
-        noteImageInput.value = "";
-        noteImageData = [];
-        noteImagePreview.innerHTML = '';
-        displayNotes();
-        // Zamknij powiększony widok textarea jeśli był aktywny
-        collapseNoteInput && collapseNoteInput();
-    }
-
-        function deleteNote(id) {
-            if (navigator.notification) {
-                navigator.notification.confirm(
-                    "Usunąć tę notatkę?",
-                    function(buttonIndex) {
-                        if (buttonIndex === 1) {
-                            const notes = getNotes().filter(n => n.id !== id);
-                            localStorage.setItem('inst-notes', JSON.stringify(notes));
-                            displayNotes();
-                        }
-                    },
-                    "Notatki",
-                    ["Tak", "Nie"]
-                );
-            } else {
-                if (confirm("Usunąć?")) {
+}
+noteImageInput.addEventListener('change', function(e) {
+    noteImageData = [];
+    const files = Array.from(e.target.files);
+    let loaded = 0;
+    if (!files.length) renderImagePreview();
+    files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            noteImageData.push(evt.target.result);
+            loaded++;
+            if (loaded === files.length) renderImagePreview();
+        };
+        reader.readAsDataURL(file);
+    });
+});
+document.addEventListener('DOMContentLoaded', loadNotes);
+function getNotes() {
+    return JSON.parse(localStorage.getItem('inst-notes') || '[]');
+}
+function addNote() {
+    const input = document.getElementById('noteInput');
+    if (!input.value.trim()) return;
+    const notes = getNotes();
+    notes.unshift({
+        id: Date.now(),
+        text: input.value,
+        date: new Date().toLocaleString('pl-PL'),
+        images: noteImageData.length ? [...noteImageData] : []
+    });
+    localStorage.setItem('inst-notes', JSON.stringify(notes));
+    input.value = "";
+    noteImageInput.value = "";
+    noteImageData = [];
+    noteImagePreview.innerHTML = '';
+    displayNotes();
+    collapseNoteInput && collapseNoteInput();
+}
+function deleteNote(id) {
+    if (navigator.notification) {
+        navigator.notification.confirm(
+            "Usunąć tę notatkę?",
+            function(buttonIndex) {
+                if (buttonIndex === 1) {
                     const notes = getNotes().filter(n => n.id !== id);
                     localStorage.setItem('inst-notes', JSON.stringify(notes));
                     displayNotes();
                 }
-            }
-        }
-
-    // Funkcja zapisu edytowanej treści
-    function updateNote(id, newText) {
-        const notes = getNotes();
-        const note = notes.find(n => n.id === id);
-        if (note) {
-            note.text = newText;
+            },
+            "Notatki",
+            ["Tak", "Nie"]
+        );
+    } else {
+        if (confirm("Usunąć?")) {
+            const notes = getNotes().filter(n => n.id !== id);
             localStorage.setItem('inst-notes', JSON.stringify(notes));
+            displayNotes();
         }
     }
-
-    function displayNotes() {
-        const list = document.getElementById('notesList');
-        const query = document.getElementById('searchNote').value.toLowerCase();
-        const notes = getNotes().filter(n => n.text.toLowerCase().includes(query));
-        
-        list.innerHTML = notes.map(note => `
-            <div class="note-card" onclick="openEditNote(${note.id})">
-                <button class="btn-delete" onclick="event.stopPropagation();deleteNote(${note.id})">USUŃ</button>
-                <div class="note-text">${note.text}</div>
-                ${note.images && note.images.length ? note.images.map(img => `<img src=\"${img}\" alt=\"Załączone zdjęcie\" style=\"max-width:100%;margin-top:10px;border-radius:8px;\">`).join('') : ''}
-                <span class="note-date">${note.date}</span>
-            </div>
-        `).join('') || '<p style="text-align:center;color:#999">Brak notatek</p>';
-        window.openEditNote = openEditNote;
+}
+function updateNote(id, newText) {
+    const notes = getNotes();
+    const note = notes.find(n => n.id === id);
+    if (note) {
+        note.text = newText;
+        localStorage.setItem('inst-notes', JSON.stringify(notes));
     }
-
-    // --- MODAL EDYCJI NOTATKI ---
-    let editNoteId = null;
-    let editNoteImages = [];
-    const editNoteModal = document.getElementById('editNoteModal');
-    const editNoteText = document.getElementById('editNoteText');
-    const editNoteImageInput = document.getElementById('editNoteImageInput');
-    const editNoteImagePreview = document.getElementById('editNoteImagePreview');
-    const editNoteSave = document.getElementById('editNoteSave');
-    const editNoteClose = document.getElementById('editNoteClose');
-
-    function renderEditImagePreview() {
-        editNoteImagePreview.innerHTML = '';
-        editNoteImages.forEach((imgData, idx) => {
-            const thumb = document.createElement('div');
-            thumb.className = 'note-image-thumb';
-            const img = document.createElement('img');
-            img.src = imgData;
-            const btn = document.createElement('button');
-            btn.className = 'note-image-remove';
-            btn.innerHTML = '&times;';
-            btn.title = 'Usuń zdjęcie';
-            btn.onclick = function() {
-                editNoteImages.splice(idx, 1);
-                renderEditImagePreview();
-            };
-            thumb.appendChild(img);
-            thumb.appendChild(btn);
-            editNoteImagePreview.appendChild(thumb);
-        });
-    }
-
-    function openEditNote(id) {
-        const notes = getNotes();
-        const note = notes.find(n => n.id === id);
-        if (!note) return;
-        editNoteId = id;
-        editNoteText.value = note.text;
-        editNoteImages = note.images ? [...note.images] : [];
-        renderEditImagePreview();
-        editNoteModal.style.display = 'flex';
-    }
-
-    editNoteClose.onclick = function() {
-        editNoteModal.style.display = 'none';
-        editNoteId = null;
-        editNoteText.value = '';
-        editNoteImages = [];
-        renderEditImagePreview();
-    };
-
-    editNoteImageInput.addEventListener('change', function(e) {
-        const files = Array.from(e.target.files);
-        let loaded = 0;
-        if (!files.length) renderEditImagePreview();
-        files.forEach((file, idx) => {
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                editNoteImages.push(evt.target.result);
-                loaded++;
-                if (loaded === files.length) renderEditImagePreview();
-            };
-            reader.readAsDataURL(file);
-        });
+}
+function displayNotes() {
+    const list = document.getElementById('notesList');
+    const query = document.getElementById('searchNote').value.toLowerCase();
+    const notes = getNotes().filter(n => n.text.toLowerCase().includes(query));
+    list.innerHTML = notes.map(note => `
+        <div class="note-card" onclick="openEditNote(${note.id})">
+            <button class="btn-delete" onclick="event.stopPropagation();deleteNote(${note.id})">USUŃ</button>
+            <div class="note-text">${note.text}</div>
+            ${note.images && note.images.length ? note.images.map(img => `<img src=\"${img}\" alt=\"Załączone zdjęcie\" style=\"max-width:100%;margin-top:10px;border-radius:8px;\">`).join('') : ''}
+            <span class="note-date">${note.date}</span>
+        </div>
+    `).join('') || '<p style="text-align:center;color:#999">Brak notatek</p>';
+    window.openEditNote = openEditNote;
+}
+// --- MODAL EDYCJI NOTATKI ---
+let editNoteId = null;
+let editNoteImages = [];
+const editNoteModal = document.getElementById('editNoteModal');
+const editNoteText = document.getElementById('editNoteText');
+const editNoteImageInput = document.getElementById('editNoteImageInput');
+const editNoteImagePreview = document.getElementById('editNoteImagePreview');
+const editNoteSave = document.getElementById('editNoteSave');
+const editNoteClose = document.getElementById('editNoteClose');
+function renderEditImagePreview() {
+    editNoteImagePreview.innerHTML = '';
+    editNoteImages.forEach((imgData, idx) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'note-image-thumb';
+        const img = document.createElement('img');
+        img.src = imgData;
+        const btn = document.createElement('button');
+        btn.className = 'note-image-remove';
+        btn.innerHTML = '&times;';
+        btn.title = 'Usuń zdjęcie';
+        btn.onclick = function() {
+            editNoteImages.splice(idx, 1);
+            renderEditImagePreview();
+        };
+        thumb.appendChild(img);
+        thumb.appendChild(btn);
+        editNoteImagePreview.appendChild(thumb);
     });
-
-    editNoteSave.onclick = function() {
-        if (!editNoteId) return;
-        const notes = getNotes();
-        const note = notes.find(n => n.id === editNoteId);
-        if (note) {
-            note.text = editNoteText.value;
-            note.images = [...editNoteImages];
-            localStorage.setItem('inst-notes', JSON.stringify(notes));
-        }
-        displayNotes();
-        editNoteModal.style.display = 'none';
-        editNoteId = null;
-        editNoteText.value = '';
-        editNoteImages = [];
-        renderEditImagePreview();
-    };
-    
-
-    function loadNotes() { displayNotes(); }
+}
+function openEditNote(id) {
+    const notes = getNotes();
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    editNoteId = id;
+    editNoteText.value = note.text;
+    editNoteImages = note.images ? [...note.images] : [];
+    renderEditImagePreview();
+    editNoteModal.style.display = 'flex';
+}
+editNoteClose.onclick = function() {
+    editNoteModal.style.display = 'none';
+    editNoteId = null;
+    editNoteText.value = '';
+    editNoteImages = [];
+    renderEditImagePreview();
+};
+editNoteImageInput.addEventListener('change', function(e) {
+    const files = Array.from(e.target.files);
+    let loaded = 0;
+    if (!files.length) renderEditImagePreview();
+    files.forEach((file, idx) => {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            editNoteImages.push(evt.target.result);
+            loaded++;
+            if (loaded === files.length) renderEditImagePreview();
+        };
+        reader.readAsDataURL(file);
+    });
+});
+editNoteSave.onclick = function() {
+    if (!editNoteId) return;
+    const notes = getNotes();
+    const note = notes.find(n => n.id === editNoteId);
+    if (note) {
+        note.text = editNoteText.value;
+        note.images = [...editNoteImages];
+        localStorage.setItem('inst-notes', JSON.stringify(notes));
+    }
+    displayNotes();
+    editNoteModal.style.display = 'none';
+    editNoteId = null;
+    editNoteText.value = '';
+    editNoteImages = [];
+    renderEditImagePreview();
+};
+function loadNotes() { displayNotes(); }
 </script>
 
 </body>
