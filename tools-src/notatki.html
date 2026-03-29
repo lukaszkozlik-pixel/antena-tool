@@ -137,7 +137,24 @@ h1 {
             font-size: 1rem;
             resize: none;
             box-sizing: border-box;
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            z-index: 1001;
         }
+
+        #noteInput.expanded {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            background: var(--tile-bg, #fff);
+            font-size: 1.2rem;
+            padding: 30px 20px 90px 20px;
+            z-index: 1002;
+            box-shadow: none;
+        }
+        
 
         .btn-save {
             background: #1a73e8;
@@ -149,21 +166,33 @@ h1 {
             margin-top: 10px;
             font-weight: bold;
             cursor: pointer;
+            position: static;
+            z-index: 1;
+            transition: box-shadow 0.2s;
+        }
+        .btn-save.fixed {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100vw;
+            border-radius: 0;
+            margin: 0;
+            z-index: 2002;
+            box-shadow: 0 -2px 16px rgba(0,0,0,0.10);
         }
     </style>
 </head>
-<script>
-// Motyw: kopiuj ustawienie z localStorage lub systemu
-function applyTheme() {
-    let theme = localStorage.getItem('theme');
-    if (!theme) {
-        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    document.documentElement.setAttribute('data-theme', theme);
-}
-applyTheme();
-</script>
+
 <body>
+<div id="editNoteModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:3000;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+    <div style="background:var(--tile-bg,#fff);padding:20px 15px 15px 15px;border-radius:12px;max-width:95vw;width:400px;box-shadow:0 4px 32px rgba(0,0,0,0.18);position:relative;">
+        <button id="editNoteClose" style="position:absolute;top:10px;right:10px;background:#fff;color:#1a73e8;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2rem;cursor:pointer;">×</button>
+        <textarea id="editNoteText" style="width:100%;min-height:70px;border-radius:8px;padding:10px;margin-bottom:10px;"></textarea>
+        <input type="file" id="editNoteImageInput" accept="image/*" multiple style="margin-bottom:10px;width:100%;">
+        <div id="editNoteImagePreview" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        <button id="editNoteSave" style="width:100%;background:#1a73e8;color:#fff;border:none;padding:10px 0;border-radius:8px;font-weight:bold;">ZAPISZ</button>
+    </div>
+</div>
 
 <header>
     <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
@@ -177,11 +206,141 @@ applyTheme();
 <div class="notes-list" id="notesList"></div>
 
 <div class="add-note-area">
+    <div id="noteInputOverlay" class="noteInput-overlay"></div>
+    <button id="noteInputClose" class="noteInput-close" title="Zamknij" tabindex="-1">×</button>
     <textarea id="noteInput" placeholder="Nowa notatka..."></textarea>
-    <button class="btn-save" onclick="addNote()">DODAJ</button>
+    <input type="file" id="noteImageInput" accept="image/*" multiple style="margin-top:10px; width:100%;">
+    <div id="noteImagePreview" style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0 0;"></div>
+    <style>
+        .note-image-thumb {
+            position: relative;
+            display: inline-block;
+        }
+        .note-image-thumb img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .note-image-remove {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #fff;
+            color: #d32f2f;
+            border: none;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 1.1rem;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+            cursor: pointer;
+            z-index: 2;
+        }
+    </style>
+    <button id="btnSave" class="btn-save" onclick="addNote()">DODAJ</button>
+    <style>
+        .noteInput-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.25);
+            z-index: 1001;
+            display: none;
+        }
+        .noteInput-overlay.active {
+            display: block;
+        }
+        .noteInput-close {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 1003;
+            background: #fff;
+            color: #1a73e8;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            display: none;
+        }
+        .noteInput-close.active {
+            display: block;
+        }
+        </style>
 </div>
 
 <script>
+        // Umożliwienie wywołania openEditNote z HTML (onclick)
+        window.openEditNote = openEditNote;
+    // Efekt powiększenia textarea na cały ekran po kliknięciu z możliwością zamknięcia
+    const noteInput = document.getElementById('noteInput');
+    const noteInputOverlay = document.getElementById('noteInputOverlay');
+    const noteInputClose = document.getElementById('noteInputClose');
+    const btnSave = document.getElementById('btnSave');
+    const noteImageInput = document.getElementById('noteImageInput');
+
+    function expandNoteInput() {
+        noteInput.classList.add('expanded');
+        noteInputOverlay.classList.add('active');
+        noteInputClose.classList.add('active');
+        btnSave.classList.add('fixed');
+        setTimeout(() => noteInput.select && noteInput.select(), 10);
+    }
+    function collapseNoteInput() {
+        noteInput.classList.remove('expanded');
+        noteInputOverlay.classList.remove('active');
+        noteInputClose.classList.remove('active');
+        btnSave.classList.remove('fixed');
+        noteInput.blur();
+    }
+    noteInput.addEventListener('focus', expandNoteInput);
+    noteInputClose.addEventListener('click', collapseNoteInput);
+    noteInputOverlay.addEventListener('click', collapseNoteInput);
+
+    // Dodawanie i podgląd wielu zdjęć do notatki
+    let noteImageData = [];
+    const noteImagePreview = document.getElementById('noteImagePreview');
+    function renderImagePreview() {
+        noteImagePreview.innerHTML = '';
+        noteImageData.forEach((imgData, idx) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'note-image-thumb';
+            const img = document.createElement('img');
+            img.src = imgData;
+            const btn = document.createElement('button');
+            btn.className = 'note-image-remove';
+            btn.innerHTML = '&times;';
+            btn.title = 'Usuń zdjęcie';
+            btn.onclick = function() {
+                noteImageData.splice(idx, 1);
+                renderImagePreview();
+            };
+            thumb.appendChild(img);
+            thumb.appendChild(btn);
+            noteImagePreview.appendChild(thumb);
+        });
+    }
+    noteImageInput.addEventListener('change', function(e) {
+        noteImageData = [];
+        const files = Array.from(e.target.files);
+        let loaded = 0;
+        if (!files.length) renderImagePreview();
+        files.forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                noteImageData.push(evt.target.result);
+                loaded++;
+                if (loaded === files.length) renderImagePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+    });
     document.addEventListener('DOMContentLoaded', loadNotes);
 
     function getNotes() {
@@ -196,12 +355,18 @@ applyTheme();
         notes.unshift({
             id: Date.now(),
             text: input.value,
-            date: new Date().toLocaleString('pl-PL')
+            date: new Date().toLocaleString('pl-PL'),
+            images: noteImageData.length ? [...noteImageData] : []
         });
 
         localStorage.setItem('inst-notes', JSON.stringify(notes));
         input.value = "";
+        noteImageInput.value = "";
+        noteImageData = [];
+        noteImagePreview.innerHTML = '';
         displayNotes();
+        // Zamknij powiększony widok textarea jeśli był aktywny
+        collapseNoteInput && collapseNoteInput();
     }
 
         function deleteNote(id) {
@@ -243,13 +408,98 @@ applyTheme();
         const notes = getNotes().filter(n => n.text.toLowerCase().includes(query));
         
         list.innerHTML = notes.map(note => `
-            <div class="note-card">
-                <button class="btn-delete" onclick="deleteNote(${note.id})">USUŃ</button>
-                <div class="note-text" contenteditable="true" onblur="updateNote(${note.id}, this.innerText)">${note.text}</div>
+            <div class="note-card" onclick="openEditNote(${note.id})">
+                <button class="btn-delete" onclick="event.stopPropagation();deleteNote(${note.id})">USUŃ</button>
+                <div class="note-text">${note.text}</div>
+                ${note.images && note.images.length ? note.images.map(img => `<img src=\"${img}\" alt=\"Załączone zdjęcie\" style=\"max-width:100%;margin-top:10px;border-radius:8px;\">`).join('') : ''}
                 <span class="note-date">${note.date}</span>
             </div>
         `).join('') || '<p style="text-align:center;color:#999">Brak notatek</p>';
+        window.openEditNote = openEditNote;
     }
+
+    // --- MODAL EDYCJI NOTATKI ---
+    let editNoteId = null;
+    let editNoteImages = [];
+    const editNoteModal = document.getElementById('editNoteModal');
+    const editNoteText = document.getElementById('editNoteText');
+    const editNoteImageInput = document.getElementById('editNoteImageInput');
+    const editNoteImagePreview = document.getElementById('editNoteImagePreview');
+    const editNoteSave = document.getElementById('editNoteSave');
+    const editNoteClose = document.getElementById('editNoteClose');
+
+    function renderEditImagePreview() {
+        editNoteImagePreview.innerHTML = '';
+        editNoteImages.forEach((imgData, idx) => {
+            const thumb = document.createElement('div');
+            thumb.className = 'note-image-thumb';
+            const img = document.createElement('img');
+            img.src = imgData;
+            const btn = document.createElement('button');
+            btn.className = 'note-image-remove';
+            btn.innerHTML = '&times;';
+            btn.title = 'Usuń zdjęcie';
+            btn.onclick = function() {
+                editNoteImages.splice(idx, 1);
+                renderEditImagePreview();
+            };
+            thumb.appendChild(img);
+            thumb.appendChild(btn);
+            editNoteImagePreview.appendChild(thumb);
+        });
+    }
+
+    function openEditNote(id) {
+        const notes = getNotes();
+        const note = notes.find(n => n.id === id);
+        if (!note) return;
+        editNoteId = id;
+        editNoteText.value = note.text;
+        editNoteImages = note.images ? [...note.images] : [];
+        renderEditImagePreview();
+        editNoteModal.style.display = 'flex';
+    }
+
+    editNoteClose.onclick = function() {
+        editNoteModal.style.display = 'none';
+        editNoteId = null;
+        editNoteText.value = '';
+        editNoteImages = [];
+        renderEditImagePreview();
+    };
+
+    editNoteImageInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        let loaded = 0;
+        if (!files.length) renderEditImagePreview();
+        files.forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                editNoteImages.push(evt.target.result);
+                loaded++;
+                if (loaded === files.length) renderEditImagePreview();
+            };
+            reader.readAsDataURL(file);
+        });
+    });
+
+    editNoteSave.onclick = function() {
+        if (!editNoteId) return;
+        const notes = getNotes();
+        const note = notes.find(n => n.id === editNoteId);
+        if (note) {
+            note.text = editNoteText.value;
+            note.images = [...editNoteImages];
+            localStorage.setItem('inst-notes', JSON.stringify(notes));
+        }
+        displayNotes();
+        editNoteModal.style.display = 'none';
+        editNoteId = null;
+        editNoteText.value = '';
+        editNoteImages = [];
+        renderEditImagePreview();
+    };
+    
 
     function loadNotes() { displayNotes(); }
 </script>
