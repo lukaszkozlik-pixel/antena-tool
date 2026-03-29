@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <script src="config.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a73e8">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <script>
+
+        // Deklarujemy zmienną globalnie, aby updateApp() miała do niej dostęp
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW działa w trybie: Najpierw Sieć');
+                });
+            });
+        }
+
+    </script>
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Instalator Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+
+
+    <div id="offline-banner"
+        style="display:none;position:fixed;top:0;left:0;width:100vw;background:#d93025;color:white;text-align:center;padding:12px 0;z-index:10001;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+        Brak połączenia z internetem – aplikacja działa w trybie offline.
+    </div>
+
+    <div id="ios-install-banner"
+        style="display:none;position:fixed;bottom:0;left:0;width:100vw;background:#fffbe6;color:#202124;text-align:center;padding:14px 10px 14px 50px;z-index:10002;font-weight:500;box-shadow:0 -2px 8px rgba(0,0,0,0.10);border-top:2px solid #fbbc05;font-size:1rem;align-items:center;">
+        Aby zainstalować aplikację na iPhonie: kliknij <b>Udostępnij</b> i wybierz <b>Do ekranu początkowego</b>.
+        <button onclick="this.parentElement.style.display='none'"
+            style="margin-left:20px;background:#fbbc05;border:none;padding:4px 16px;border-radius:16px;font-weight:bold;cursor:pointer;">Zamknij</button>
+    </div>
+
+    <div id="error-banner"
+        style="display:none;position:fixed;top:48px;left:50%;transform:translateX(-50%);background:#d93025;color:white;padding:12px 24px;border-radius:8px;z-index:10003;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,0.15);max-width:90vw;">
+        <span id="error-message"></span>
+        <button onclick="this.parentElement.style.display='none'"
+            style="margin-left:18px;background:#fff;color:#d93025;border:none;padding:2px 12px;border-radius:12px;font-weight:bold;cursor:pointer;">Zamknij</button>
+    </div>
+
+    <div id="app">
+        <header>
+            <h1>Niezbędnik Instalatora</h1>
+        </header>
+
+        <main class="grid-container">
+    
+
+            <div class="tile" onclick="location.href='tools-src/nadajniki.html'">
+                <span class="icon">🗼</span>
+                <span class="label">Kierunki do nadajników DVB-T</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/bibliotekaDVBT.html'">
+                <span class="icon">📺</span>
+                <span class="label">Baza wiedzy DVB-T</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/satelity.html'">
+                <span class="icon">📡</span>
+                <span class="label">Kalkulator azymutu SAT</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/bibliotekaSAT.html'">
+                <span class="icon">🛰️</span>
+                <span class="label">Baza wiedzy SAT</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/instrukcje.html'">
+                <span class="icon">📖</span>
+                <span class="label">Instrukcje obsługi i dekoderów</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/cennik.html'">
+                <span class="icon">💰</span>
+                <span class="label">Kalkulator usług i cennik</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/Jednostki.html'">
+                <span class="icon">↔️</span>
+                <span class="label">Przelicznik jednostek sygnału</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/internet.html'">
+                <span class="icon">🌐</span>
+                <span class="label">Internet, kable i LTE</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/notatki.html'">
+                <span class="icon">📝</span>
+                <span class="label">Notatnik instalatora</span>
+            </div>
+
+
+        </main>
+
+        <footer style="text-align: center; color: gray; font-size: 10px; padding: 10px;">
+            v<span id="app-version">1.x</span>, <span id="app-status">tryb sprawdzania...</span>
+        </footer>
+    </div>
+</body>
+
+<script>
+      
+    let backClickCounter = 0;
+
+    function onDeviceReady() {
+        // 1. WERSJA - automatycznie pobierana z manifest.json lub ze zmiennej CACHE_NAME w sw.js
+        async function setAppVersion() {
+            const el = document.getElementById('app-version');
+            if (!el) return;
+            // 1) Spróbuj pobrać manifest.json i odczytać pole `version`
+            try {
+                const r = await fetch('manifest.json', { cache: 'no-store' });
+                if (r.ok) {
+                    const m = await r.json();
+                    if (m.version) { el.innerText = m.version; return; }
+                }
+            } catch (e) { }
+            // 2) Fallback: spróbuj odczytać sw.js i dopasować wersję z CACHE_NAME
+            try {
+                const r2 = await fetch('sw.js', { cache: 'no-store' });
+                if (r2.ok) {
+                    const txt = await r2.text();
+                    const re = /CACHE_NAME\s*=\s*['"]([a-zA-Z0-9\-_.]*v?(\d+(?:\.\d+)+))['"]/i;
+                    const m = txt.match(re);
+                    if (m && m[2]) { el.innerText = m[2]; return; }
+                }
+            } catch (e) { }
+            // 3) Ostateczny fallback
+            el.innerText = '1.0.0';
+        }
+        setAppVersion();
+
+        const statusSpan = document.getElementById('app-status');
+
+        // 2. STATUS SIECI
+        function updateOnlineStatus() {
+
+            if (navigator.onLine) {
+                statusSpan.innerText = "Tryb ONLINE gotowy";
+                statusSpan.style.color = "#03dac6";
+                document.getElementById('offline-banner').style.display = 'none';
+            } else {
+                statusSpan.innerText = "Tryb OFFLINE gotowy";
+                statusSpan.style.color = "gray";
+                document.getElementById('offline-banner').style.display = 'block';
+            }
+        }
+        updateOnlineStatus();
+
+        document.addEventListener("offline", updateOnlineStatus, false);
+        document.addEventListener("online", updateOnlineStatus, false);
+
+        // 3. TEST POŁĄCZENIA Z INTERNETEM (opcjonalnie, można zostawić tylko navigator.onLine)
+        function testInternetConnection() {
+            fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
+                .then(() => {
+                    if (!navigator.onLine) return; // jeśli systemowy offline, nie nadpisuj
+                    statusSpan.innerText = "Tryb ONLINE gotowy";
+                    statusSpan.style.color = "#03dac6";
+                })
+                .catch(() => {
+                    statusSpan.innerText = "Tryb OFFLINE gotowy";
+                    statusSpan.style.color = "gray";
+                })
+                .finally(() => {
+                    updateOnlineStatus(); // zawsze synchronizuj po teście
+                });
+        }
+        testInternetConnection();
+    }
+
+
+
+    // Nasza własna, darmowa funkcja powiadomienia na ekranie
+    function showToast(message) {
+        // Usuwamy stare powiadomienie jeśli jeszcze istnieje
+        const oldToast = document.getElementById('custom-toast');
+        if (oldToast) oldToast.remove();
+
+        const statusDiv = document.createElement('div');
+        statusDiv.id = 'custom-toast';
+        statusDiv.style = "position:fixed; bottom:50px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 25px; border-radius:25px; z-index:9999; font-size:14px; white-space:nowrap; border: 1px solid #444;";
+        statusDiv.innerText = message;
+        document.body.appendChild(statusDiv);
+
+        // Animacja znikania
+        setTimeout(() => {
+            statusDiv.style.opacity = '0';
+            statusDiv.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => statusDiv.remove(), 500);
+        }, 2000);
+    }
+
+    function showOfflineBanner(show) {
+        const banner = document.getElementById('offline-banner');
+        const header = document.querySelector('header');
+        // Ustaw margin-top headera zawsze na wysokość ramki, jeśli ramka jest widoczna
+        if (show) {
+            banner.style.display = 'block';
+            setTimeout(() => {
+                if (header) header.style.marginTop = banner.offsetHeight + 'px';
+            }, 10); // opóźnienie na render
+        } else {
+            banner.style.display = 'none';
+            if (header) header.style.marginTop = '';
+        }
+
+        // Dodatkowo, na zmianę orientacji i resize — popraw margin-top headera
+        window.addEventListener('resize', () => {
+            if (banner.style.display === 'block' && header) {
+                header.style.marginTop = banner.offsetHeight + 'px';
+            }
+        });
+    }
+
+    // Dla pewności: po powrocie na stronę/wybudzeniu — odśwież status i układ
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
+            if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
+        }
+    });
+    window.addEventListener('pageshow', () => {
+        if (typeof updateOnlineStatus === 'function') updateOnlineStatus();
+        if (typeof showOfflineBanner === 'function') showOfflineBanner(!navigator.onLine ? true : false);
+    });
+
+
+    function showIosInstallBanner() {
+        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (isIos && !isStandalone) {
+            document.getElementById('ios-install-banner').style.display = 'block';
+        }
+    }
+
+
+
+    // Funkcja stopki (zostaje, by pokazywać wersję z manifestu)
+    async function setAppVersion() {
+        const el = document.getElementById('app-version');
+        if (el) el.innerText = APP_CONFIG.VERSION;
+    }
+
+    //Po załadaniu strony, inicjalizujemy zabezpieczenia, ustawiamy status sieci i wersję aplikacji
+
+
+
+    window.addEventListener('load', async () => {
+        onDeviceReady();
+        setAppVersion();
+        showIosInstallBanner();
+    });
+
+
+</script>
+
+</html>

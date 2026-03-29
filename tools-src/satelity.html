@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<link rel="stylesheet" href="../style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satelita - Kierunki</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { margin: 0; font-family: sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; }
+        
+        /* POPRAWIONY NAGŁÓWEK - TYTUŁ NA ŚRODKU */
+        header { 
+            background: #004ba0; 
+            color: white; 
+            padding: 10px 15px; 
+            display: flex; 
+            align-items: center; 
+            position: relative; 
+            min-height: 50px;
+            z-index: 1000; 
+        }
+        .btn-back { 
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 1.8rem; 
+            cursor: pointer; 
+            z-index: 2;
+            padding: 0;
+        }
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+        }
+
+        #map { height: 35%; width: 100%; z-index: 1; border-bottom: 2px solid #ccc; }
+        
+        .list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        
+        .sat-card {
+            background: var(--tile-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--tile-shadow);
+            border: 1px solid var(--tile-border);
+            color: var(--text);
+        }
+
+        .sat-card.active { border: 3px solid #00c853; background: #f1f8e9; color: var(--text); }
+        .sat-info { display: flex; flex-direction: column; }
+        .sat-name { font-weight: bold; font-size: 1.1rem; color: #004ba0; }
+        .sat-pos { font-size: 0.8rem; color: #666; }
+        .sat-angles { margin-top: 5px; font-weight: bold; color: #333; }
+        .btn-line { 
+        background: #004ba0; 
+        color: white; 
+        border: none; 
+        padding: 12px 20px; /* Nieco większy dla wygody */
+        border-radius: 8px; 
+        font-weight: bold; 
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: background 0.2s;
+    }
+
+.btn-line:active {
+    background: #00c853; /* Zmienia kolor na zielony w momencie kliknięcia */
+}
+
+/* Zmniejszenie i rozjaśnienie napisu na dole mapy */
+.leaflet-control-attribution {
+    font-size: 8px !important; /* Bardzo mały druk */
+    background: rgba(255, 255, 255, 0.5) !important; /* Przezroczyste tło */
+    max-width: 50%; /* Niech się zawija, zamiast lecieć przez cały ekran */
+}
+    </style>
+</head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<body onload="initMap()">
+
+<header>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
+    <h1>Kierunki Satelit</h1>
+</header>
+
+<div id="map"></div>
+
+<div class="list-container" id="satList">
+    </div>
+
+<script>
+    let map, userMarker, currentLine;
+    let userCoords = null;
+
+    const satellites = [
+        { name: "Hotbird 13°E", lon: 13.0 },
+        { name: "Astra 19.2°E", lon: 19.2 },
+        { name: "Astra 23.5°E", lon: 23.5 },
+        { name: "Thor 0.8°W", lon: -0.8 },
+        { name: "Hispasat 30°W", lon: -30.0 }
+    ];
+
+    function initMap() {
+        // Definicja warstwy standardowej
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        });
+
+        // Definicja warstwy satelitarnej (Esri World Imagery)
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+        });
+
+        // Inicjalizacja mapy z domyślną warstwą satelitarną (lepsza dla instalatora)
+        map = L.map('map', {
+            center: [52.23, 21.01],
+            zoom: 6,
+            layers: [osm] // Satelita jako startowy widok
+        });
+
+        // Dodanie przełącznika w prawym górnym rogu
+        const baseMaps = {
+            "Satelita": satellite,
+            "Mapa": osm
+        };
+        L.control.layers(baseMaps).addTo(map);
+
+        // 2. POBIERANIE LOKALIZACJI W TLE
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                userCoords = [position.coords.latitude, position.coords.longitude];
+                
+                map.setView(userCoords, 17);
+                
+                if (userMarker) map.removeLayer(userMarker);
+                userMarker = L.marker(userCoords).addTo(map)
+                    .bindPopup("Twoja pozycja");
+                
+                displaySatellites();
+            }, () => {
+                document.getElementById('satList').innerHTML = "<p style='text-align:center; padding:20px;'>Błąd GPS. Włącz lokalizację w telefonie.</p>";
+            }, { enableHighAccuracy: true });
+        }
+    }
+
+    function displaySatellites() {
+        const list = document.getElementById('satList');
+        list.innerHTML = "";
+
+        satellites.forEach(sat => {
+            const az = calculateAzimuth(userCoords[0], userCoords[1], sat.lon);
+            const el = calculateElevation(userCoords[0], userCoords[1], sat.lon);
+            
+            const card = document.createElement('div');
+            card.className = 'sat-card';
+            card.innerHTML = `
+                <div class="sat-info">
+                    <span class="sat-name">${sat.name}</span>
+                    <span class="sat-pos">Pozycja: ${sat.lon}°</span>
+                    <span class="sat-angles">Azymut: ${az}° | Elewacja: ${el}°</span>
+                </div>
+                <button class="btn-line" onclick="drawLine(${az}, this)">WYBIERZ</button>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function drawLine(az, btn) {
+        if (!userCoords) return;
+
+        document.querySelectorAll('.sat-card').forEach(c => c.classList.remove('active'));
+        btn.parentElement.classList.add('active');
+
+        if (currentLine) map.removeLayer(currentLine);
+
+        const angleRad = (az - 90) * Math.PI / 180;
+        const d = 0.005; 
+        const endPoint = [
+            userCoords[0] - d * Math.sin(angleRad), 
+            userCoords[1] + d * Math.cos(angleRad)
+        ];
+
+        currentLine = L.polyline([userCoords, endPoint], { 
+            color: '#00c853', 
+            weight: 6, 
+            dashArray: '5, 10' 
+        }).addTo(map);
+
+        map.setView(userCoords, 17);
+    }
+
+    // Obliczenia trygonometryczne
+    function calculateAzimuth(lat, lon, satLon) {
+        const phi = lat * Math.PI / 180;
+        const dL = (lon - satLon) * Math.PI / 180;
+        const az = Math.PI + Math.atan2(Math.tan(dL), Math.sin(phi));
+        return Math.round((az * 180 / Math.PI) % 360);
+    }
+
+    function calculateElevation(lat, lon, satLon) {
+        const phi = lat * Math.PI / 180;
+        const dL = (lon - satLon) * Math.PI / 180;
+        const R = 6371; 
+        const r = 42164; 
+        const num = Math.cos(phi) * Math.cos(dL) - (R/r);
+        const den = Math.sqrt(1 - Math.pow(Math.cos(phi) * Math.cos(dL), 2));
+        const el = Math.atan2(num, den);
+        return Math.round(el * 180 / Math.PI);
+    }
+</script>
+
+</body>
+</html>

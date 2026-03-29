@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteka DVB-T</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { font-family: sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+        header { background: #1a73e8; color: white; padding: 15px; display: flex; align-items: center; }
+        .btn-back { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; margin-right: 15px; }
+        .container { padding: 10px; }
+        
+        .accordion { background: var(--tile-bg); border-radius: 10px; margin-bottom: 10px; overflow: hidden; box-shadow: var(--tile-shadow); }
+        .acc-header { background: #1a73e8; color: white; padding: 15px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .acc-header span:last-child { font-size: 1.05rem; margin-left: 8px; opacity: 0.95; }
+        
+        /* Kluczowa zmiana: padding: 0, aby iframe wypełniał całą szerokość, oraz wysokość */
+        .acc-content { 
+            display: none; 
+            padding: 0; 
+            border-top: 1px solid #eee; 
+            height: 70vh; /* Ustawiamy stałą wysokość okna z tabelą */
+        }
+        .acc-content.show { display: block; }
+
+        /* Styl dla iframe wewnątrz akordeonu */
+        .acc-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+    </style>
+</head>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+<body>
+
+<header>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
+    <h1 style="margin:0; font-size: 1.1rem;">Biblioteka DVB-T</h1>
+</header>
+
+<div class="container">
+    
+    <div class="accordion">
+        <div class="acc-header" onclick="window.open('https://mapy.radiopolska.pl/','_blank')"><span>RadioPolska - Mapa Interaktywna</span><span>▶</span></div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="window.open('https://emi.emitel.pl/plan_www/','_blank')"><span>Emitel - Planowane przerwy emisji</span><span>▶</span></div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">CZĘSTOTLIWOŚCI (KANAŁY) <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/czestotliwosciDVBT.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">LISTA MUX-ÓW <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/muxy.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">PARAMETRY SYGNAŁU <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/Parametry-DVB-t.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="window.location.href='docs/KonstelacjaDVbt2.html'"><span>KONSTELACJA DVB-T</span><span>▶</span></div>
+    </div>
+
+</div>
+
+<script>
+    function toggleAcc(header) {
+        const content = header.nextElementSibling;
+        // Zmieniamy tylko w sekcjach z rozwijanym kontentem
+        if (!content || !content.classList.contains('acc-content')) return;
+        const span = header.querySelector('span');
+        // Zmieniamy tylko +/− w sekcjach z acc-content
+        const allHeaders = document.querySelectorAll('.acc-header');
+        allHeaders.forEach(h => {
+            const c = h.nextElementSibling;
+            const s = h.querySelector('span');
+            if (c && c.classList.contains('acc-content')) {
+                c.classList.remove('show');
+                if (s) s.innerText = '+';
+            }
+        });
+        // Otwieramy/zamykamy klikniętą sekcję
+        const isOpening = !content.classList.contains('show');
+        if (isOpening) {
+            content.classList.add('show');
+            if (span) span.innerText = '−';
+        }
+    }
+</script>
+</body>
+</html>

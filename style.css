@@ -1,0 +1,164 @@
+
+/* --- MOTYW JASNY --- */
+:root {
+    --bg: #f4f4f4;
+    --text: #202124;
+    --tile-bg: #fff;
+    --tile-border: #e0e0e0;
+    --tile-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    --primary-color: #1a73e8;
+    --bg-color: #f8f9fa;
+    --tile-color: #ffffff;
+    --text-color: #202124;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+    transition: background 0.3s, color 0.3s;
+}
+
+.tile {
+    background: var(--tile-bg);
+    border: 1px solid var(--tile-border);
+    box-shadow: var(--tile-shadow);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+
+
+body {
+    background-color: var(--bg-color);
+    transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Magia siatki 2x2 */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dwie równe kolumny */
+    gap: 12px;
+    padding: 12px;
+    flex: 1;
+    align-content: start; /* Kafelki zaczną się od góry */
+}
+
+.tile {
+    background: var(--tile-color);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    aspect-ratio: 2 / 1; /* Prostokąt poziomy, niższy kafelek */
+    min-height: 60px;
+    max-height: 90px;
+    width: 100%;
+    padding: 6px 0 4px 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e0e0e0;
+    transition: transform 0.1s;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+    animation: tileFadeIn 0.5s cubic-bezier(.4,1.4,.6,1) forwards;
+}
+
+.tile:nth-child(1) { animation-delay: 0.05s; }
+.tile:nth-child(2) { animation-delay: 0.10s; }
+.tile:nth-child(3) { animation-delay: 0.15s; }
+.tile:nth-child(4) { animation-delay: 0.20s; }
+.tile:nth-child(5) { animation-delay: 0.25s; }
+.tile:nth-child(6) { animation-delay: 0.30s; }
+.tile:nth-child(7) { animation-delay: 0.35s; }
+.tile:nth-child(8) { animation-delay: 0.40s; }
+.tile:nth-child(9) { animation-delay: 0.45s; }
+.tile:nth-child(10) { animation-delay: 0.50s; }
+.tile:nth-child(11) { animation-delay: 0.55s; }
+.tile:nth-child(12) { animation-delay: 0.60s; }
+
+@keyframes tileFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Efekt hover na kafelkach */
+.tile:hover {
+    box-shadow: 0 8px 24px rgba(26,115,232,0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+    transform: scale(1.03);
+    transition: box-shadow 0.2s, transform 0.2s;
+    z-index: 2;
+}
+
+/* Animacja kliknięcia przycisku */
+button:active {
+    transform: scale(0.96);
+    filter: brightness(0.95);
+    transition: transform 0.08s, filter 0.08s;
+}
+
+/* Efekt naciśnięcia palcem */
+.tile:active {
+    transform: scale(0.95);
+    background-color: #e8f0fe;
+}
+
+.icon {
+    font-size: 2.1rem;
+    margin-bottom: 4px;
+    line-height: 1;
+    max-width: 90%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.label {
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.92rem;
+    max-width: 92%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    font-size: 0.8rem;
+    color: #70757a;
+}
+
+/* Efekt "ładowania" przy długim kliknięciu */
+.price-item:active {
+    background-color: #fce8e6; /* Delikatny czerwony sugerujący usunięcie */
+    transition: background-color 0.8s;
+}
+
