@@ -250,13 +250,93 @@
 </div>
 
 <script>
-// --- LOGIKA NOTATEK ---
+// --- LOGIKA NOTATEK Z INDEXEDDB ---
 window.openEditNote = openEditNote;
 const noteInput = document.getElementById('noteInput');
 const noteInputOverlay = document.getElementById('noteInputOverlay');
 const noteInputClose = document.getElementById('noteInputClose');
 const btnSave = document.getElementById('btnSave');
 const noteImageInput = document.getElementById('noteImageInput');
+let noteImageData = [];
+const noteImagePreview = document.getElementById('noteImagePreview');
+
+// IndexedDB helpers
+let db = null;
+function openDB() {
+    return new Promise((resolve, reject) => {
+        if (db) return resolve(db);
+        const request = indexedDB.open('inst-notes-db', 1);
+        request.onupgradeneeded = function(e) {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('notes')) {
+                db.createObjectStore('notes', { keyPath: 'id' });
+            }
+        };
+        request.onsuccess = function(e) {
+            db = e.target.result;
+            resolve(db);
+        };
+        request.onerror = function(e) {
+            reject(e);
+        };
+    });
+}
+function getAllNotes() {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('notes', 'readonly');
+            const store = tx.objectStore('notes');
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result.sort((a, b) => b.id - a.id));
+            req.onerror = reject;
+        });
+    });
+}
+function addNoteToDB(note) {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('notes', 'readwrite');
+            const store = tx.objectStore('notes');
+            store.add(note);
+            tx.oncomplete = resolve;
+            tx.onerror = reject;
+        });
+    });
+}
+function updateNoteInDB(note) {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('notes', 'readwrite');
+            const store = tx.objectStore('notes');
+            store.put(note);
+            tx.oncomplete = resolve;
+            tx.onerror = reject;
+        });
+    });
+}
+function deleteNoteFromDB(id) {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('notes', 'readwrite');
+            const store = tx.objectStore('notes');
+            store.delete(id);
+            tx.oncomplete = resolve;
+            tx.onerror = reject;
+        });
+    });
+}
+function getNoteById(id) {
+    return openDB().then(db => {
+        return new Promise((resolve, reject) => {
+            const tx = db.transaction('notes', 'readonly');
+            const store = tx.objectStore('notes');
+            const req = store.get(id);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = reject;
+        });
+    });
+}
+
 function expandNoteInput() {
     noteInput.classList.add('expanded');
     noteInputOverlay.classList.add('active');
@@ -274,8 +354,7 @@ function collapseNoteInput() {
 noteInput.addEventListener('focus', expandNoteInput);
 noteInputClose.addEventListener('click', collapseNoteInput);
 noteInputOverlay.addEventListener('click', collapseNoteInput);
-let noteImageData = [];
-const noteImagePreview = document.getElementById('noteImagePreview');
+
 function renderImagePreview() {
     noteImagePreview.innerHTML = '';
     noteImageData.forEach((imgData, idx) => {
@@ -311,21 +390,17 @@ noteImageInput.addEventListener('change', function(e) {
         reader.readAsDataURL(file);
     });
 });
-document.addEventListener('DOMContentLoaded', loadNotes);
-function getNotes() {
-    return JSON.parse(localStorage.getItem('inst-notes') || '[]');
-}
-function addNote() {
+
+async function addNote() {
     const input = document.getElementById('noteInput');
     if (!input.value.trim()) return;
-    const notes = getNotes();
-    notes.unshift({
+    const note = {
         id: Date.now(),
         text: input.value,
         date: new Date().toLocaleString('pl-PL'),
         images: noteImageData.length ? [...noteImageData] : []
-    });
-    localStorage.setItem('inst-notes', JSON.stringify(notes));
+    };
+    await addNoteToDB(note);
     input.value = "";
     noteImageInput.value = "";
     noteImageData = [];
@@ -333,14 +408,14 @@ function addNote() {
     displayNotes();
     collapseNoteInput && collapseNoteInput();
 }
-function deleteNote(id) {
+
+async function deleteNote(id) {
     if (navigator.notification) {
         navigator.notification.confirm(
             "Usunąć tę notatkę?",
-            function(buttonIndex) {
+            async function(buttonIndex) {
                 if (buttonIndex === 1) {
-                    const notes = getNotes().filter(n => n.id !== id);
-                    localStorage.setItem('inst-notes', JSON.stringify(notes));
+                    await deleteNoteFromDB(id);
                     displayNotes();
                 }
             },
@@ -349,24 +424,25 @@ function deleteNote(id) {
         );
     } else {
         if (confirm("Usunąć?")) {
-            const notes = getNotes().filter(n => n.id !== id);
-            localStorage.setItem('inst-notes', JSON.stringify(notes));
+            await deleteNoteFromDB(id);
             displayNotes();
         }
     }
 }
-function updateNote(id, newText) {
-    const notes = getNotes();
-    const note = notes.find(n => n.id === id);
+
+async function updateNote(id, newText, newImages) {
+    const note = await getNoteById(id);
     if (note) {
         note.text = newText;
-        localStorage.setItem('inst-notes', JSON.stringify(notes));
+        if (newImages) note.images = newImages;
+        await updateNoteInDB(note);
     }
 }
-function displayNotes() {
+
+async function displayNotes() {
     const list = document.getElementById('notesList');
     const query = document.getElementById('searchNote').value.toLowerCase();
-    const notes = getNotes().filter(n => n.text.toLowerCase().includes(query));
+    const notes = (await getAllNotes()).filter(n => n.text.toLowerCase().includes(query));
     list.innerHTML = notes.map(note => `
         <div class="note-card" onclick="openEditNote(${note.id})">
             <button class="btn-delete" onclick="event.stopPropagation();deleteNote(${note.id})">USUŃ</button>
@@ -377,6 +453,7 @@ function displayNotes() {
     `).join('') || '<p style="text-align:center;color:#999">Brak notatek</p>';
     window.openEditNote = openEditNote;
 }
+
 // --- MODAL EDYCJI NOTATKI ---
 let editNoteId = null;
 let editNoteImages = [];
@@ -406,9 +483,8 @@ function renderEditImagePreview() {
         editNoteImagePreview.appendChild(thumb);
     });
 }
-function openEditNote(id) {
-    const notes = getNotes();
-    const note = notes.find(n => n.id === id);
+async function openEditNote(id) {
+    const note = await getNoteById(id);
     if (!note) return;
     editNoteId = id;
     editNoteText.value = note.text;
@@ -437,15 +513,9 @@ editNoteImageInput.addEventListener('change', function(e) {
         reader.readAsDataURL(file);
     });
 });
-editNoteSave.onclick = function() {
+editNoteSave.onclick = async function() {
     if (!editNoteId) return;
-    const notes = getNotes();
-    const note = notes.find(n => n.id === editNoteId);
-    if (note) {
-        note.text = editNoteText.value;
-        note.images = [...editNoteImages];
-        localStorage.setItem('inst-notes', JSON.stringify(notes));
-    }
+    await updateNote(editNoteId, editNoteText.value, [...editNoteImages]);
     displayNotes();
     editNoteModal.style.display = 'none';
     editNoteId = null;
