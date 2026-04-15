@@ -244,6 +244,7 @@
     
 
     let currentUser = null;
+    let currentEditId = null; // Przechowuje ID notatki w trybie edycji
 
     const loginModal = document.getElementById('login-modal');
     const authBtn = document.getElementById('auth-btn');
@@ -260,7 +261,12 @@
         inputContainer.classList.remove('fullscreen');
         inputHeader.style.display = 'none';
         noteInput.rows = 3;
-        noteInput.blur(); // Zabierz focus z pola
+        // Resetuj przycisk i ID edycji
+        currentEditId = null;
+        addBtn.innerText = "DODAJ";
+        addBtn.style.background = "var(--primary)";
+        
+        noteInput.blur();
     }
 
     // 2A. Kliknięcie X - Zmniejszanie
@@ -269,11 +275,21 @@
         minimizeInput();
     };
 
-
-
-
-
-
+    // 4. Funkcja edycji notatki
+    window.editNote = (id, text) => {
+        currentEditId = id;
+        noteInput.value = text;
+        
+        // Zmiana wyglądu przycisku na tryb edycji
+        addBtn.innerText = "ZAPISZ ZMIANY";
+        addBtn.style.background = "#3498db";
+        
+        // Aktywacja pola (rozciągnięcie kontenera)
+        noteInput.focus();
+        
+        // Przewiń na górę, żeby widzieć edytor
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
 
     // Sprawdź status przy ładowaniu
@@ -364,12 +380,16 @@
             const card = document.createElement('div');
             card.className = `note-card ${todo.urgent ? 'urgent' : ''}`;
             card.innerHTML = `
-                <div style="flex-grow: 1;">
-                    <p class="note-text">${todo.text.replace(/\n/g, '<br>')}</p>
-                    <span class="note-date">${date}</span>
-                </div>
-                <button class="delete-btn" title="Usuń" onclick="deleteNote('${todo.id}')">🗑️</button>
-            `;
+                                <div style="flex-grow: 1;">
+                                    <p class="note-text">${todo.text.replace(/\n/g, '<br>')}</p>
+                                    <span class="note-date">${date}</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <button class="edit-btn" style="background:none; border:none; font-size:18px; cursor:pointer;" 
+                                            onclick="editNote('${todo.id}', \`${todo.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">✏️</button>
+                                    <button class="delete-btn" title="Usuń" onclick="deleteNote('${todo.id}')">🗑️</button>
+                                </div>
+                            `;
             notesList.appendChild(card);
         });
     }
@@ -381,19 +401,36 @@
         if (!text) return;
 
         addBtn.disabled = true;
-        const { error } = await supabaseClient
-            .from('todos')
-            .insert([{ 
-                text: text, 
-                user_id: currentUser.id,
-                urgent: false 
-            }]);
+        let error;
+
+        if (currentEditId) {
+            // --- TRYB EDYCJI (UPDATE) ---
+            const { error: updateError } = await supabaseClient
+                .from('todos')
+                .update({ text: text })
+                .eq('id', currentEditId);
+            error = updateError;
+        } else {
+            // --- TRYB NOWEJ NOTATKI (INSERT) ---
+            const { error: insertError } = await supabaseClient
+                .from('todos')
+                .insert([{ 
+                    text: text, 
+                    user_id: currentUser.id,
+                    urgent: false 
+                }]);
+            error = insertError;
+        }
 
         if (error) {
             alert("Błąd zapisu: " + error.message);
         } else {
+            // Resetowanie stanu po sukcesie
             noteInput.value = '';
-            minimizeInput(); // WRACA DO NORMALNEGO ROZMIARU
+            currentEditId = null;
+            addBtn.innerText = "DODAJ";
+            addBtn.style.background = "var(--primary)";
+            minimizeInput();
             loadNotes(); 
         }
         addBtn.disabled = false;
