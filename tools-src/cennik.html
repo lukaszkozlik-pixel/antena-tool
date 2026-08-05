@@ -52,24 +52,31 @@
         }
 
         .price-item {
-            background: var(--tile-bg);
-            margin-bottom: 10px;
+            background: var(--tile-bg, #ffffff);
+            margin-bottom: 8px; /* Nieco mniejszy odstęp, żeby zmieścić więcej na ekranie */
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 8px; /* Trochę mniejsze zaokrąglenie */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 2px solid transparent;
+            border: 1px solid #e0e0e0; /* Wyraźniejsza obramówka */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Delikatny cień */
             transition: 0.2s;
             user-select: none;
             -webkit-user-select: none;
             -webkit-touch-callout: none;
-            color: var(--text);
+            color: var(--text, #333);
+        }
+
+        /* Efekt zebry - co drugi element ma lekko szare tło */
+        .standard-item:nth-child(even) {
+            background-color: #f8f9fa;
         }
 
         .price-item.selected {
             border-color: #1a73e8;
-            background: #e8f0fe;
+            background: #e8f0fe !important; /* !important wymusza kolor zaznaczenia nad zebrą */
+            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.2); /* Mocniejszy cień przy zaznaczeniu */
         }
 
         .price-item:active {
@@ -310,8 +317,8 @@
 
         async function initPrices() {
             const urlSerwera = 'https://gist.githubusercontent.com/lukaszkozlik-pixel/6ac667b625999ef34bfc3997bb07db4d/raw/cennik.json';
-            //const localData = localStorage.getItem('cachedServices');
-            //if (localData) renderServices(JSON.parse(localData));
+            const localData = localStorage.getItem('cachedServices');
+            if (localData) renderServices(JSON.parse(localData));
 
             try {
                 const response = await fetch(urlSerwera + '?t=' + Date.now());
@@ -332,13 +339,27 @@
                 div.setAttribute('data-name', service.name);
                 div.setAttribute('data-price', service.price);
                 const isKabel = service.name.toLowerCase().includes('kabel');
+                
                 div.onclick = function () { isKabel ? addCableFromJSON(this) : addItem(this); };
                 div.onmousedown = function () { startPress(this); };
                 div.onmouseup = function () { endPress(); };
                 div.ontouchstart = function () { startPress(this); };
                 div.ontouchend = function () { endPress(); };
-                div.innerHTML = `<div><span class="qty"></span><span>${service.name}</span></div>
-                                 <span class="price-value">${service.price} zł${isKabel ? '/m' : ''}</span>`;
+                
+                // NOWE: Pobieranie ikony i formatowanie tekstu
+                const icon = getIconForService(service.name);
+                
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">${icon}</span>
+                        <div>
+                            <span class="qty"></span>
+                            <span style="font-weight: 500;">${service.name}</span>
+                        </div>
+                    </div>
+                    <span class="price-value">${service.price} zł${isKabel ? '/m' : ''}</span>
+                `;
+                
                 menuContainer.insertBefore(div, document.querySelector('.item-other'));
             });
             updateDisplay();
@@ -449,6 +470,24 @@
 
         function closeSummaryModal() { document.getElementById('modal-summary').style.display = 'none'; }
         function resetAll() { total = 0; selectedItems = []; updateDisplay(); closeSummaryModal(); }
+
+
+        function getIconForService(name) {
+            const lowerName = name.toLowerCase();
+            
+            if (lowerName.includes('konwerter') return '🔈';
+            if (lowerName.includes('czasza') || (lowerName.includes('antena') return '📡';
+            if (lowerName.includes('pilot') return '📱';
+            if (lowerName.includes('wzm') || (lowerName.includes('rozdzielacz') || (lowerName.includes('sumator') || (lowerName.includes('rozgałęźnik') || (lowerName.includes('symetryzator')return '🎛';
+            if (lowerName.includes('filtr') || (lowerName.includes('zabezpieczenie') || (lowerName.includes('tłumik') return '🛡';
+            if (lowerName.includes('stojak') || (lowerName.includes('maszt') || (lowerName.includes('masztu') return '🈁';
+            if (lowerName.includes('kabel') || lowerName.includes('przewód')) ||  return '〰️';
+            if (lowerName.includes('przepięciowa')) || lowerName.includes('złodziejka')) return '🔌';
+            
+            return '📦'; // Domyślna ikona dla pozostałych
+        }
+
+        
     </script>
 </body>
 
