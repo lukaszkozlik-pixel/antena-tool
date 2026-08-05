@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -9,230 +8,306 @@
     <style>
         :root {
             --primary: #1a73e8;
-            --bg: #f8f9fa;
+            --primary-hover: #1557b0;
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
             --text: #202124;
-            --shadow: 0 1px 3px rgba(0,0,0,0.12);
+            --text-secondary: #5f6368;
+            --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius-md: 12px;
+            --radius-lg: 16px;
         }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
             flex-direction: column;
             height: 100vh;
+            overflow: hidden; /* Zapobiega podwójnemu scrollowaniu */
         }
 
         header {
             background: var(--primary);
             color: white;
-            padding: 15px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
         }
 
         .btn-back {
-            background: none;
+            background: rgba(255, 255, 255, 0.2);
             border: none;
+            border-radius: 50%;
             color: white;
-            font-size: 20px;
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             margin-right: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-back:active {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.2rem;
+            font-size: 1.25rem;
+            font-weight: 500;
             flex-grow: 1;
+            letter-spacing: 0.5px;
         }
 
         /* Sekcja wpisywania */
         .input-container {
-                padding: 15px;
-                background: white;
-                border-bottom: 1px solid #ddd;
-                display: flex;
-                flex-direction: column;
-                gap: 10px;
-                transition: all 0.3s ease; /* Płynne przejście */
-            }
-
-        /* Klasa aktywowana przez JS */
-            .input-container.fullscreen {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 1000;
-                height: 95vh;
-                padding: 20px;
-            }
-
-            .input-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                font-weight: bold;
-                color: var(--primary);
-                margin-bottom: 10px;
-            }
-
-        #close-btn {
-            background: #eee;
-            border: none;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            font-size: 18px;
-            cursor: pointer;
+            padding: 16px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 6px -4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 5;
         }
 
-        /* W trybie pełnym textarea zajmuje resztę miejsca */
+        .input-container.fullscreen {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1000;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 0;
+        }
+
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        #close-btn {
+            background: var(--bg);
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .fullscreen #note-input {
             flex-grow: 1; 
-            font-size: 18px; /* Trochę większa czcionka do pisania */
+            font-size: 1.1rem;
+            border: none;
+            background: var(--bg);
         }
 
         .fullscreen #add-btn {
-            height: 60px; /* Większy przycisk na dole */
+            height: 54px;
             font-size: 16px;
+            border-radius: var(--radius-md);
+            margin-top: 10px;
         }
 
         #note-input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid #dadce0;
+            border-radius: var(--radius-md);
             font-size: 16px;
-            font-family: inherit; /* Aby czcionka była taka sama jak w reszcie apki */
-            resize: none; /* Blokujemy ręczne rozciąganie przez użytkownika, by nie psuć layoutu */
+            font-family: inherit;
+            resize: none;
             box-sizing: border-box;
             outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            line-height: 1.5;
         }
 
         #note-input:focus {
             border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
         }
 
         #add-btn {
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 12px; /* Większy padding, by łatwiej było trafić palcem */
-            font-weight: bold;
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
             cursor: pointer;
-            width: 100%; /* Przycisk na całą szerokość pod polem tekstowym */
+            width: 100%;
+            transition: background 0.2s, transform 0.1s;
         }
 
+        #add-btn:active {
+            transform: scale(0.98);
+        }
 
         /* Lista notatek */
         #notes-list {
             flex-grow: 1;
             overflow-y: auto;
-            padding: 15px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
+        }
+
+        /* Ładniejszy scrollbar */
+        #notes-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        #notes-list::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.2);
+            border-radius: 10px;
         }
 
         .note-card {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 12px;
             animation: fadeIn 0.3s ease;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .note-card:active {
+            transform: scale(0.98);
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .note-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .note-text {
             font-size: 16px;
-            line-height: 1.4;
+            line-height: 1.5;
+            color: var(--text);
             margin: 0;
             word-break: break-word;
             white-space: pre-wrap;
         }
 
         .note-date {
-            font-size: 11px;
-            color: #70757a;
-            margin-top: 8px;
-            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        .delete-btn {
-            background: none;
+        /* Pasek akcji wewnątrz karty */
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #f1f3f4;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .action-btn {
+            background: var(--bg);
             border: none;
-            color: #d93025;
-            font-size: 18px;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            font-size: 16px;
             cursor: pointer;
-            padding: 5px;
-            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
         }
 
-        /* Stan ładowania / braku danych */
+        .action-btn:active {
+            background: #e8eaed;
+        }
+
         .empty-state {
             text-align: center;
-            color: #70757a;
-            margin-top: 50px;
+            color: var(--text-secondary);
+            margin-top: 40px;
+            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Styl dla pilnych zadań (opcjonalnie) */
         .note-card.urgent {
-            border-left: 5px solid #d93025;
+            border-left: 6px solid #ea4335;
         }
     </style>
 </head>
 <body>
 
     <!-- logowanie -->
-    <div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:white; padding:30px; border-radius:15px; width:90%; max-width:350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <h2 style="margin-top:0; color:#1a73e8; font-size:1.4rem;">Logowanie do Sync</h2>
-        <p style="color:#5f6368; font-size:0.9rem;">Wpisz dane, których używasz w aplikacji na komputerze.</p>
+    <div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    <div style="background:white; padding:32px; border-radius:24px; width:85%; max-width:350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h2 style="margin-top:0; margin-bottom: 8px; color:var(--text); font-size:1.5rem; font-weight:600;">Zaloguj się</h2>
+        <p style="color:var(--text-secondary); font-size:0.95rem; margin-bottom: 24px;">Wpisz dane do konta Sync.</p>
         
-        <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
-        <input type="password" id="login-password" placeholder="Hasło" style="width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px; box-sizing:border-box;">
+        <input type="email" id="login-email" placeholder="Email" style="width:100%; padding:14px; margin-bottom:12px; border:1px solid #dadce0; border-radius:12px; box-sizing:border-box; outline:none; font-size:16px;">
+        <input type="password" id="login-password" placeholder="Hasło" style="width:100%; padding:14px; margin-bottom:20px; border:1px solid #dadce0; border-radius:12px; box-sizing:border-box; outline:none; font-size:16px;">
         
-        <button id="auth-btn" style="width:100%; padding:12px; background:#1a73e8; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px;">ZALOGUJ</button>
-        <button id="close-login" style="width:100%; padding:8px; background:none; color:#5f6368; border:none; cursor:pointer; margin-top:5px; font-size:0.8rem;">Anuluj</button>
+        <button id="auth-btn" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:600; font-size:16px; cursor:pointer; transition: background 0.2s;">ZALOGUJ</button>
+        <button id="close-login" style="width:100%; padding:12px; background:none; color:var(--text-secondary); border:none; cursor:pointer; margin-top:8px; font-size:15px; font-weight:500;">Anuluj</button>
     </div>
 </div>
 
 <header>
-    <button class="btn-back" onclick="window.location.href='../index.html'">◀</button>
+    <button class="btn-back" onclick="window.location.href='../index.html'">❮</button>
     <h1>Notatki Sync</h1>
 </header>
 
 <div class="input-container" id="input-container">
     <div class="input-header" id="input-header" style="display: none;">
-        <span>Nowa notatka</span>
+        <span>Tworzenie notatki</span>
         <button id="close-btn">✕</button>
     </div>
-    <textarea id="note-input" placeholder="Wpisz treść zadania..." rows="3"></textarea>
-    <button id="add-btn">DODAJ</button>
+    <textarea id="note-input" placeholder="Co masz do zrobienia?" rows="2"></textarea>
+    <button id="add-btn">DODAJ ZADANIE</button>
 </div>
 
 <div id="notes-list"></div>
 
 <script>
-
-    
     // --- KONFIGURACJA ---
-    SUPABASE_URL = "https://cszlgyntfhjrejjbigno.supabase.co"
-    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzemxneW50ZmhqcmVqamJpZ25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTIxNDksImV4cCI6MjA5MTU4ODE0OX0.JDgNIpW6ScuqzCsjIP3tka6hc-XlgaLokibXe91LAWo"
+    const SUPABASE_URL = "https://cszlgyntfhjrejjbigno.supabase.co"
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzemxneW50ZmhqcmVqamJpZ25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMTIxNDksImV4cCI6MjA5MTU4ODE0OX0.JDgNIpW6ScuqzCsjIP3tka6hc-XlgaLokibXe91LAWo"
 
-    
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const inputContainer = document.getElementById('input-container');
@@ -242,9 +317,8 @@
     const noteInput = document.getElementById('note-input');
     const addBtn = document.getElementById('add-btn');
     
-
     let currentUser = null;
-    let currentEditId = null; // Przechowuje ID notatki w trybie edycji
+    let currentEditId = null; 
 
     const loginModal = document.getElementById('login-modal');
     const authBtn = document.getElementById('auth-btn');
@@ -253,19 +327,17 @@
     noteInput.addEventListener('focus', () => {
         inputContainer.classList.add('fullscreen');
         inputHeader.style.display = 'flex';
-        noteInput.rows = 15; // Opcjonalnie więcej rzędów
+        noteInput.rows = 15; 
     });
 
     // Funkcja przywracająca normalny wygląd
     function minimizeInput() {
         inputContainer.classList.remove('fullscreen');
         inputHeader.style.display = 'none';
-        noteInput.rows = 3;
-        // Resetuj przycisk i ID edycji
+        noteInput.rows = 2;
         currentEditId = null;
-        addBtn.innerText = "DODAJ";
+        addBtn.innerText = "DODAJ ZADANIE";
         addBtn.style.background = "var(--primary)";
-        
         noteInput.blur();
     }
 
@@ -280,25 +352,18 @@
         currentEditId = id;
         noteInput.value = text;
         
-        // Zmiana wyglądu przycisku na tryb edycji
         addBtn.innerText = "ZAPISZ ZMIANY";
-        addBtn.style.background = "#3498db";
+        addBtn.style.background = "#34a853"; // Zielony dla edycji
         
-        // Aktywacja pola (rozciągnięcie kontenera)
         noteInput.focus();
-        
-        // Przewiń na górę, żeby widzieć edytor
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-
-    // Sprawdź status przy ładowaniu
     window.addEventListener('load', async () => {
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateLoginUI(session);
     });
 
-    // Funkcja logowania
     authBtn.onclick = async () => {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
@@ -314,12 +379,10 @@
             authBtn.disabled = false;
         } else {
             loginModal.style.display = 'none';
-            alert("Zalogowano pomyślnie!");
-            location.reload(); // Odśwież, żeby kafelki wiedziały o sesji
+            location.reload(); 
         }
     };
 
-    // Funkcja otwierająca okno (możesz ją podpiąć pod jakiś przycisk lub kafelek)
     function openLogin() {
         loginModal.style.display = 'flex';
     }
@@ -327,12 +390,9 @@
     document.getElementById('close-login').onclick = () => loginModal.style.display = 'none';
 
     function updateLoginUI(session) {
-        // Tutaj możesz np. zmienić kolor ikonki profilu jeśli użytkownik jest zalogowany
         console.log(session ? "Zalogowany jako: " + session.user.email : "Niezalogowany");
     }
 
-
-    // 1. Inicjalizacja: Sprawdź sesję
     async function init() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         
@@ -340,15 +400,12 @@
             currentUser = session.user;
             loadNotes();
         } else {
-            // Jeśli nie ma sesji, przekieruj do logowania (index.html)
-            alert("Brak aktywnej sesji. Zaloguj się.");
             openLogin();
         }
     }
 
-    // 2. Pobieranie notatek z Supabase
     async function loadNotes() {
-        notesList.innerHTML = '<div class="empty-state">Ładowanie zadań...</div>';
+        notesList.innerHTML = '<div class="empty-state"><span>⏳</span> Ładowanie zadań...</div>';
 
         const { data: todos, error } = await supabaseClient
             .from('todos')
@@ -357,17 +414,16 @@
 
         if (error) {
             console.error("Błąd pobierania:", error);
-            notesList.innerHTML = '<div class="empty-state">Błąd połączenia z bazą.</div>';
+            notesList.innerHTML = '<div class="empty-state"><span>⚠️</span> Błąd połączenia z bazą.</div>';
             return;
         }
 
         renderNotes(todos);
     }
 
-    // 3. Wyświetlanie notatek w HTML
     function renderNotes(todos) {
         if (todos.length === 0) {
-            notesList.innerHTML = '<div class="empty-state">Brak zadań w chmurze. 🎉</div>';
+            notesList.innerHTML = '<div class="empty-state"><span style="font-size:2rem;">🎉</span> Brak zadań w chmurze.<br><small>Czas na odpoczynek!</small></div>';
             return;
         }
 
@@ -379,23 +435,22 @@
 
             const card = document.createElement('div');
             card.className = `note-card ${todo.urgent ? 'urgent' : ''}`;
+            
+            // Formatowanie HTML wewnątrz JS
             card.innerHTML = `
-                                <div style="flex-grow: 1;">
-                                    <p class="note-text">${todo.text.replace(/\n/g, '<br>')}</p>
-                                    <span class="note-date">${date}</span>
-                                </div>
-                                <div style="display: flex; flex-direction: column; gap: 10px;">
-                                    <button class="edit-btn" style="background:none; border:none; font-size:18px; cursor:pointer;" 
-                                            onclick="editNote('${todo.id}', \`${todo.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">✏️</button>
-                                    <button class="delete-btn" title="Usuń" onclick="deleteNote('${todo.id}')">🗑️</button>
-                                </div>
-                            `;
+                <div class="note-content">
+                    <p class="note-text">${todo.text.replace(/\n/g, '<br>')}</p>
+                    <span class="note-date">🕒 ${date}</span>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn" title="Edytuj" onclick="editNote('${todo.id}', \`${todo.text.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">✏️</button>
+                    <button class="action-btn" title="Usuń" onclick="deleteNote('${todo.id}')">🗑️</button>
+                </div>
+            `;
             notesList.appendChild(card);
         });
     }
 
-    // 2B. Kliknięcie Dodaj - Zapis i Zmniejszanie
-    // Zaktualizuj swoją funkcję addBtn.onclick:
     addBtn.onclick = async () => {
         const text = noteInput.value.trim();
         if (!text) return;
@@ -404,14 +459,12 @@
         let error;
 
         if (currentEditId) {
-            // --- TRYB EDYCJI (UPDATE) ---
             const { error: updateError } = await supabaseClient
                 .from('todos')
                 .update({ text: text })
                 .eq('id', currentEditId);
             error = updateError;
         } else {
-            // --- TRYB NOWEJ NOTATKI (INSERT) ---
             const { error: insertError } = await supabaseClient
                 .from('todos')
                 .insert([{ 
@@ -425,10 +478,9 @@
         if (error) {
             alert("Błąd zapisu: " + error.message);
         } else {
-            // Resetowanie stanu po sukcesie
             noteInput.value = '';
             currentEditId = null;
-            addBtn.innerText = "DODAJ";
+            addBtn.innerText = "DODAJ ZADANIE";
             addBtn.style.background = "var(--primary)";
             minimizeInput();
             loadNotes(); 
@@ -436,9 +488,8 @@
         addBtn.disabled = false;
     };
 
-    // 5. Usuwanie notatki
     window.deleteNote = async (id) => {
-        if (!confirm("Czy na pewno usunąć?")) return;
+        if (!confirm("Czy na pewno usunąć to zadanie?")) return;
 
         const { error } = await supabaseClient
             .from('todos')
@@ -452,8 +503,6 @@
         }
     };
 
-
-    // Start aplikacji
     init();
 </script>
 
