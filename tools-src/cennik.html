@@ -310,8 +310,8 @@
 
         async function initPrices() {
             const urlSerwera = 'https://gist.githubusercontent.com/lukaszkozlik-pixel/cc9860262022f28a759d1790020381fe/raw/uslugi.json';
-            const localData = localStorage.getItem('cachedServices');
-            if (localData) renderServices(JSON.parse(localData));
+            //const localData = localStorage.getItem('cachedServices');
+            //if (localData) renderServices(JSON.parse(localData));
 
             try {
                 const response = await fetch(urlSerwera + '?t=' + Date.now());
