@@ -217,18 +217,19 @@
             margin: 0;
             word-break: break-word;
             white-space: pre-wrap;
-            /* --- NOWE WŁAŚCIWOŚCI DO ZAJAAWEK --- */
-            display: -webkit-box;
-            -webkit-line-clamp: 3; /* Liczba widocznych linijek */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
             cursor: pointer; /* Kursor sugerujący możliwość kliknięcia */
-            transition: all 0.3s ease;
         }
 
-        /* Klasa dodawana po kliknięciu - zdejmuje limit linijek */
-        .note-text.expanded {
-            -webkit-line-clamp: unset;
+        /* Domyślnie ukrywamy pełny tekst, pokazując tylko zajawkę */
+        .note-text .full-text {
+            display: none;
+        }
+
+        /* Po kliknięciu (dodaniu klasy expanded) ukrywamy zajawkę, a pokazujemy pełny tekst */
+        .note-text.expanded .teaser-text {
+            display: none;
+        }
+        .note-text.expanded .full-text {
             display: block;
         }
 
@@ -460,13 +461,25 @@
             const card = document.createElement('div');
             card.className = `note-card ${todo.urgent ? 'urgent' : ''}`;
 
-            // Wstawiamy zawartość w <div>, aby listy HTML renderowały się poprawnie
-            // Przekazujemy do editNote tylko ID zadania
-            // Wstawiamy zawartość w <div>, dodajemy mechanizm rozwijania na klik
+            // --- TWORZENIE ZAJAWKI ---
+            const teaser = getTeaser(todo.text);
+            let textContentHtml = "";
+
+            if (teaser) {
+                // Generujemy dwa kontenery - jeden na zajawkę, drugi (ukryty) na pełny tekst
+                textContentHtml = `
+                    <div class="teaser-text">${teaser}</div>
+                    <div class="full-text">${todo.text}</div>
+                `;
+            } else {
+                // Jeśli tekst jest krótki, wstawiamy go po prostu w div
+                textContentHtml = `<div>${todo.text}</div>`;
+            }
+
             card.innerHTML = `
                 <div class="note-content">
-                    <div class="note-text" onclick="this.classList.toggle('expanded')" title="Kliknij, aby rozwinąć/zwinąć">
-                        ${todo.text}
+                    <div class="note-text" ${teaser ? `onclick="this.classList.toggle('expanded')"` : ''} title="Kliknij, aby rozwinąć/zwinąć">
+                        ${textContentHtml}
                     </div>
                     <span class="note-date">🕒 ${date}</span>
                 </div>
@@ -530,6 +543,23 @@
             loadNotes();
         }
     };
+
+    function getTeaser(text) {
+        // Szukamy końca pierwszego zdania (kropka, pytajnik, wykrzyknik) ze spacją/nową linią po nim
+        let match = text.match(/^.*?[.?!](?:\s|\n|$)/);
+
+        if (match && match[0].length < text.length) {
+            // Zwracamy pierwsze zdanie i zachętę do rozwinięcia
+            return match[0].trim() + " <b style='color: var(--primary);'>[rozwiń]</b>";
+        } else if (text.length > 100) {
+            // Zabezpieczenie: jeśli ktoś napisał ponad 100 znaków i nie użył żadnej kropki
+            let cut = text.substring(0, 100);
+            let lastSpace = cut.lastIndexOf(" ");
+            return cut.substring(0, lastSpace > 0 ? lastSpace : 100) + "... <b style='color: var(--primary);'>[rozwiń]</b>";
+        }
+        
+        return null; // Zwracamy null, jeśli tekst jest tak krótki, że zajawka nie jest potrzebna
+    }
 
     init();
 </script>
