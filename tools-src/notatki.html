@@ -550,30 +550,45 @@
     };
 
     function getTeaser(htmlString) {
-        if (!htmlString) return null;
+          if (!htmlString) return null;
         
-        // Tworzymy element w pamięci (NIE dodajemy go do strony!), 
-        // żeby bezpiecznie sparsować HTML konkretnej notatki
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlString;
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlString, "text/html");
         
-        // Wyciągamy czysty tekst tylko z zawartości tej konkretnej notatki
-        const plainText = tempDiv.textContent || tempDiv.innerText || "";
-
-        // Szukamy końca pierwszego zdania (kropka, pytajnik, wykrzyknik)
-        let match = plainText.match(/^.*?[.?!](?:\s|\n|$)/);
-
-        if (match && match[0].length < plainText.length) {
+          // Weź tylko treść dokumentu, a nie <head>
+          const root = doc.body || doc;
+        
+          // Usuń elementy, które zwykle nie powinny trafiać do zajawki
+          root.querySelectorAll("script, style, noscript").forEach(el => el.remove());
+        
+          // Jeśli masz konkretny kontener treści notatki — użyj go zamiast body:
+          // const root = doc.querySelector(".note-content") || doc.body || doc;
+        
+          const plainText =
+            (root.textContent || root.innerText || "")
+              .replace(/\s+/g, " ")
+              .trim();
+        
+          if (!plainText) return null;
+        
+          // Szukamy końca pierwszego zdania (kropka, pytajnik, wykrzyknik)
+          const match = plainText.match(/^.*?[.?!](?:\s|$)/);
+        
+          if (match && match[0].length < plainText.length) {
             return match[0].trim() + " <b style='color: var(--primary);'>[rozwiń]</b>";
-        } else if (plainText.length > 80) {
-            // Zabezpieczenie na wypadek bardzo długiego tekstu bez kropek
-            let cut = plainText.substring(0, 80);
-            let lastSpace = cut.lastIndexOf(" ");
-            return cut.substring(0, lastSpace > 0 ? lastSpace : 80) + "... <b style='color: var(--primary);'>[rozwiń]</b>";
-        }
+          }
         
-        return null; // Zwracamy null, jeśli tekst jest krótki i zajawka nie jest potrzebna
-    }
+          if (plainText.length > 80) {
+            const cut = plainText.substring(0, 80);
+            const lastSpace = cut.lastIndexOf(" ");
+            return (
+              cut.substring(0, lastSpace > 0 ? lastSpace : 80) +
+              "... <b style='color: var(--primary);'>[rozwiń]</b>"
+            );
+          }
+        
+          return null;
+        }
 
     init();
 </script>
