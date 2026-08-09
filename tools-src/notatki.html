@@ -552,9 +552,12 @@
     function getTeaser(htmlString) {
         if (!htmlString) return null;
         
-        // Tworzymy niewidoczny element, aby bezpiecznie wyciągnąć czysty tekst bez tagów HTML
+        // Tworzymy element w pamięci (NIE dodajemy go do strony!), 
+        // żeby bezpiecznie sparsować HTML konkretnej notatki
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = htmlString;
+        
+        // Wyciągamy czysty tekst tylko z zawartości tej konkretnej notatki
         const plainText = tempDiv.textContent || tempDiv.innerText || "";
 
         // Szukamy końca pierwszego zdania (kropka, pytajnik, wykrzyknik)
