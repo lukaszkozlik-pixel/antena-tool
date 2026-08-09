@@ -217,6 +217,19 @@
             margin: 0;
             word-break: break-word;
             white-space: pre-wrap;
+            /* --- NOWE WŁAŚCIWOŚCI DO ZAJAAWEK --- */
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* Liczba widocznych linijek */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            cursor: pointer; /* Kursor sugerujący możliwość kliknięcia */
+            transition: all 0.3s ease;
+        }
+
+        /* Klasa dodawana po kliknięciu - zdejmuje limit linijek */
+        .note-text.expanded {
+            -webkit-line-clamp: unset;
+            display: block;
         }
 
         .note-date {
@@ -449,9 +462,12 @@
 
             // Wstawiamy zawartość w <div>, aby listy HTML renderowały się poprawnie
             // Przekazujemy do editNote tylko ID zadania
+            // Wstawiamy zawartość w <div>, dodajemy mechanizm rozwijania na klik
             card.innerHTML = `
                 <div class="note-content">
-                    <div class="note-text">${todo.text}</div>
+                    <div class="note-text" onclick="this.classList.toggle('expanded')" title="Kliknij, aby rozwinąć/zwinąć">
+                        ${todo.text}
+                    </div>
                     <span class="note-date">🕒 ${date}</span>
                 </div>
                 <div class="card-actions">
