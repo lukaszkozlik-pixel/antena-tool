@@ -217,19 +217,24 @@
             margin: 0;
             word-break: break-word;
             white-space: pre-wrap;
-            cursor: pointer; /* Kursor sugerujący możliwość kliknięcia */
+            cursor: pointer;
         }
 
-        /* Domyślnie ukrywamy pełny tekst, pokazując tylko zajawkę */
+        /* Ukrywamy pełny tekst, gdy wyświetlana jest zajawka */
         .note-text .full-text {
             display: none;
         }
 
-        /* Po kliknięciu (dodaniu klasy expanded) ukrywamy zajawkę, a pokazujemy pełny tekst */
+        /* Po kliknięciu chowamy zajawkę i pokazujemy pełny, sformatowany tekst */
         .note-text.expanded .teaser-text {
             display: none;
         }
         .note-text.expanded .full-text {
+            display: block;
+        }
+
+        /* Jeśli notatka jest krótka (nie ma zajawki), od razu pokazujemy pełny tekst */
+        .note-text .full-text-only {
             display: block;
         }
 
@@ -466,14 +471,14 @@
             let textContentHtml = "";
 
             if (teaser) {
-                // Generujemy dwa kontenery - jeden na zajawkę, drugi (ukryty) na pełny tekst
+                // Generujemy dwa kontenery - jeden na czystą zajawkę, drugi na pełny tekst z HTML z bazy
                 textContentHtml = `
                     <div class="teaser-text">${teaser}</div>
                     <div class="full-text">${todo.text}</div>
                 `;
             } else {
                 // Jeśli tekst jest krótki, wstawiamy go po prostu w div
-                textContentHtml = `<div>${todo.text}</div>`;
+                textContentHtml = `<div class="full-text-only">${todo.text}</div>`;
             }
 
             card.innerHTML = `
@@ -544,21 +549,27 @@
         }
     };
 
-    function getTeaser(text) {
-        // Szukamy końca pierwszego zdania (kropka, pytajnik, wykrzyknik) ze spacją/nową linią po nim
-        let match = text.match(/^.*?[.?!](?:\s|\n|$)/);
+    function getTeaser(htmlString) {
+        if (!htmlString) return null;
+        
+        // Tworzymy niewidoczny element, aby bezpiecznie wyciągnąć czysty tekst bez tagów HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlString;
+        const plainText = tempDiv.textContent || tempDiv.innerText || "";
 
-        if (match && match[0].length < text.length) {
-            // Zwracamy pierwsze zdanie i zachętę do rozwinięcia
+        // Szukamy końca pierwszego zdania (kropka, pytajnik, wykrzyknik)
+        let match = plainText.match(/^.*?[.?!](?:\s|\n|$)/);
+
+        if (match && match[0].length < plainText.length) {
             return match[0].trim() + " <b style='color: var(--primary);'>[rozwiń]</b>";
-        } else if (text.length > 100) {
-            // Zabezpieczenie: jeśli ktoś napisał ponad 100 znaków i nie użył żadnej kropki
-            let cut = text.substring(0, 100);
+        } else if (plainText.length > 80) {
+            // Zabezpieczenie na wypadek bardzo długiego tekstu bez kropek
+            let cut = plainText.substring(0, 80);
             let lastSpace = cut.lastIndexOf(" ");
-            return cut.substring(0, lastSpace > 0 ? lastSpace : 100) + "... <b style='color: var(--primary);'>[rozwiń]</b>";
+            return cut.substring(0, lastSpace > 0 ? lastSpace : 80) + "... <b style='color: var(--primary);'>[rozwiń]</b>";
         }
         
-        return null; // Zwracamy null, jeśli tekst jest tak krótki, że zajawka nie jest potrzebna
+        return null; // Zwracamy null, jeśli tekst jest krótki i zajawka nie jest potrzebna
     }
 
     init();
