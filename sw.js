@@ -7,11 +7,11 @@ const ASSETS = [
   'config.js',
   'tools-src/bibliotekaDVBT.html',
   'tools-src/bibliotekaSAT.html',
-  'tools-src/cennik.html',
+ 
   'tools-src/internet.html',
   'tools-src/Jednostki.html',
   'tools-src/nadajniki.html',
-  'tools-src/notatki.html',
+  
   'tools-src/satelity.html',
   'tools-src/docs/czestotliwosciDVBT.html',
   'tools-src/docs/kolorySat.html',
