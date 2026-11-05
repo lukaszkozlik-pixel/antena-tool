@@ -20,7 +20,8 @@ const ASSETS = [
   'tools-src/docs/muxy.html',
   'tools-src/docs/Parametry-DVB-t.html',
   'tools-src/docs/ParametrySAT.html',
-  'tools-src/docs/UnicablePB.html'
+  'tools-src/docs/UnicablePB.html',
+  'tools-scr/docs/NC_PLUS_RESET.html'
 ];
 
 // Instalacja - po prostu zapełniamy cache na start
